@@ -11,10 +11,10 @@ Kafka is used as the event/message bus in this architecture, which decouples ser
 - **REST API Service**: Exposes both public and protected endpoints, possibly handling user-related data and authentication.
 - **Product Service**: Manages stock and reserves quantities, triggers events like `OrderProcessed` when stock and price calculations are complete.
 - **Payment Service**: Listens to the `OrderProcessed` event, verifies the user’s account, and processes payments. Integrates with the Porezna SOAP api.
-- **Notification Service**: Sends notifications (e.g., email, SMS, mobile push notifications) once the payment is successfully processed, and publishes a `UserNotified` event.
+- **Notification Service**: Sends notifications (e.g., email, SMS, mobile push notifications) once the payment is successfully processed, and is used for auditing 3rd party providers.
 - **Logistics Service**: Handles order shipping and logistics, integrates with third-party shipping services.
 - **Gateway Service**: Routes requests to the appropriate microservices and provides a single entry point for the system.
-- **Analytics Service**: Based on business requirements we will analyze stored data from the Warehouse databases
+- **Analytics Service**: Based on business requirements we will analyze stored data from the Warehouse database ClickHouse
 
 ## 2. Technology Stack Choices
 
@@ -25,10 +25,13 @@ Kafka is used as the event/message bus in this architecture, which decouples ser
 - **PostgreSQL**: Used for transactional data such as orders, payments, and user data.
 - **Redis**: Caches data to speed up responses, such as caching user sessions or product details.
 - **Grafana**: For monitoring and alerting, using tools like Prometheus or InfluxDB to track service health and performance.
+- **Clickhouse**: OLAP warehouse database that consumes Kafka events directly using Kafka Engine tables
 - **Docker**: Containerizes services for easy deployment. Kubernetes will be used for orchestration.
 - **Azure Cloud**: Hosts the infrastructure with services like Azure Kubernetes Service (AKS), Azure Blob Storage, use Azure Load Balancer, Azure CDN, and Azure PostgreSQL.
 - **Next.js**: I plan to use ISR and Next.js serves a pre-generated static page from the cache and regenerates it in the background when a specific revalidate interval is met.
 - **Flutter**: For native mobile application for Android and iOs.
+- **CDN**: caches FE for static product images/metadata
+- **Backoffice**: standalone java application that 
 
 ## 3. Communication Between Components
 
@@ -49,14 +52,14 @@ Connection Pooling: PgBouncer or Azure Connection Pooler per database cluster
 Purpose: User accounts, authentication, authorization, profiles
 Tables: users, roles, permissions, tokens, sessions
 Services: AuthService, APIService (user endpoints)
-Replication: Primary + 2 Read Replicas
+Replication: Primary + 2 Read Replicas with **async physical streaming replication**
 Isolation: Logged-in users only (no anonymous access)
 Justification: Critical transactional data requiring strong consistency
 
 2. Database: Inventory Database (product_db)
 Purpose: Products, inventory, stock management, pricing
 Services: Product Service, Logistics Service
-Replication: Primary + 2 Read Replicas
+Replication: Primary + 2 Read Replicas with **async physical streaming replication**
 Access: Both anonymous (read-only) and authenticated (read-write)
 Justification: High read volume, write operations need consistency
 
@@ -70,13 +73,13 @@ Justification: Financial data requiring ACID guarantees
 4. Payment Database (payment_db)
 Tables: transactions, payment_methods, invoices, refunds, taxRates, taxRegions
 Services: Payment Service
-Replication: Primary + 2 Read Replicas
+Replication: Primary + 2 Read Replicas **sync physical streaming replication**
 Justification: Financial data requires isolation, audit trails, compliance
 
-5. Payment Database (payment_db)
+5. Notification Database (notification_db)
 Tables: notification_queue, notification_history, templates
 Services: Notification Service
-Replication: Primary + 1 Read Replica
+Replication: Primary **async physical streaming replication**
 Justification: Non-critical, can tolerate slight delays
 
 ### Cassandra Database Strategy for Cart
@@ -100,19 +103,23 @@ User Separation:
 ### Redis Caching Strategy
 Application checks cache first, then DB. Updates cache after DB write and Kafka events trigger cache updates
 3 Redis Instances (clustered or separate):
-1. redis_cache - Application caching
+
+1. redis_catalog - Application caching
    - Product catalog cache (most accessed products)
    - User session cache
+   - Pre-populate product catalog during low-traffic periods
    - API response cache (TO-DO investigate)
    - TTL: 5-60 minutes depending on data type
 
-2. redis_rate_limit - Rate limiting & DDoS protection
+2. redis_rate_limit - Rate limiting
    - IP-based rate limiting
    - User-based rate limiting
    - Device fingerprint tracking
    - Anonymous cart operation counters
+   - DDoS protection
 
 3. redis_session - User sessions
    - Active user sessions
    - Token blacklist (for logout)
    - TTL: Session duration (e.g., 24 hours)
+

@@ -88,3 +88,31 @@ The Gateway Service is the **critical interface between external clients and int
 - Handles authentication, authorization, and traffic shaping.
 - Ensures backend services remain protected and resilient.
 - Scales independently to handle varying traffic patterns without impacting business logic services.
+
+
+```
+┌─────────────────┐
+│  Gateway Service│
+│  (Rate Limiting)│
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    │         │
+┌───▼───┐ ┌───▼────┐
+│ Redis │ │ Redis  │
+│ Cache │ │ Rate   │
+│       │ │ Limit  │
+└───┬───┘ └────────┘
+    │
+    │
+┌───▼──────────────────────────────────────────────┐
+│         Service Layer                            │
+├──────────────────────────────────────────────────┤
+│ AuthService        -> user_db                    │
+│ APIService         -> TO-DO: decide all Dbs      │
+│ ProductService     -> product_db                 │
+│ PaymentService     -> order_db                   │
+│ CartService        -> Cassandra Cluster          │
+│ AnalyticsService   -> ClickHouse (OLAP)          │
+└──────────────────────────────────────────────────┘
+```
