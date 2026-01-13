@@ -1,3 +1,17 @@
+# AbstractTrade - E-Commerce Microservices Platform
+
+> **Getting Started**: See [QUICK_START.md](QUICK_START.md) to get up and running in 5 minutes!
+
+## Documentation Index
+
+- **[QUICK_START.md](QUICK_START.md)** - Get started in 5 minutes
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Complete project overview
+- **[DOCKER_SETUP.md](DOCKER_SETUP.md)** - Comprehensive Docker documentation
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Visual architecture diagrams
+- **[DIRECTORY_STRUCTURE.md](DIRECTORY_STRUCTURE.md)** - Project directory structure
+- **[scripts/README.md](scripts/README.md)** - Database initialization scripts
+
+
 # High-Level Architecture
 
 ## 1. Microservices & Kafka Messaging

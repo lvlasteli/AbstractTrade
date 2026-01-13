@@ -1,0 +1,115 @@
+version: '3.8'
+
+# Development overrides for docker-compose.yml
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services: 
+  postgres-auth:
+    command: postgres -c log_statement=all -c log_duration=on
+    volumes:
+      - ./scripts/init-auth-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-product:
+    command: postgres -c log_statement=all -c log_duration=on
+    volumes:
+      - ./scripts/init-product-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-order:
+    command: postgres -c log_statement=all -c log_duration=on
+    volumes:
+      - ./scripts/init-order-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-payment:
+    command: postgres -c log_statement=all -c log_duration=on
+    volumes:
+      - ./scripts/init-payment-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-notification:
+    command: postgres -c log_statement=all -c log_duration=on
+    volumes:
+      - ./scripts/init-notification-db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # ==================== Redis Development Overrides ====================
+  
+  redis-cache:
+    command: redis-server --requirepass ${REDIS_CACHE_PASSWORD:-cache_password} --maxmemory 512mb --maxmemory-policy allkeys-lru --loglevel debug
+
+  redis-ratelimit:
+    command: redis-server --requirepass ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password} --maxmemory 256mb --maxmemory-policy volatile-ttl --loglevel debug
+
+  redis-session:
+    command: redis-server --requirepass ${REDIS_SESSION_PASSWORD:-session_password} --maxmemory 512mb --maxmemory-policy volatile-lru --loglevel debug
+
+  # ==================== Kafka Development Overrides ====================
+  
+  kafka:
+    environment:
+      KAFKA_LOG_RETENTION_HOURS: 24
+      KAFKA_LOG_SEGMENT_BYTES: 104857600
+      KAFKA_NUM_PARTITIONS: 3
+
+  # ==================== Development Tools ====================
+  
+  # Redis Commander - Redis GUI
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    environment:
+      REDIS_HOSTS: |
+        cache:redis-cache:6379:0:${REDIS_CACHE_PASSWORD:-cache_password},
+        ratelimit:redis-ratelimit:6379:0:${REDIS_RATELIMIT_PASSWORD:-ratelimit_password},
+        session:redis-session:6379:0:${REDIS_SESSION_PASSWORD:-session_password}
+    ports:
+      - "8081:8081"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      - redis-cache
+      - redis-ratelimit
+      - redis-session
+
+  # pgAdmin - PostgreSQL GUI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@abstracttrade.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    networks:
+      - abstracttrade-network
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      - postgres-auth
+      - postgres-product
+      - postgres-order
+      - postgres-payment
+      - postgres-notification
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8090:8080"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      - kafka
+      - zookeeper
+
+volumes:
+  pgadmin-data:
+
+networks:
+  abstracttrade-network:
+    external: true
+    name: abstracttrade-network
+
+

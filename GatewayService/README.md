@@ -5,7 +5,7 @@
 The Gateway Service acts as the **single entry point** for all client traffic to the microservices ecosystem. Its responsibilities include:
 
 - **Route requests**: Direct incoming API calls to the appropriate microservice (REST API, Product Service, Auth Service, etc.).
-- **Authentication & Authorization**: Validate JWT tokens, OAuth2 tokens, and enforce role-based access control for protected endpoints.
+- **Authentication & Authorization**: It is responsible for request routing, session resolution, authentication enforcement, authorization checks, and identity propagation to downstream services.
 - **Rate limiting & throttling**: Prevent abuse or overload from high-volume traffic.
 - **API versioning and aggregation**: Support multiple API versions and optionally aggregate responses from multiple services.
 - **Provide a unified public interface**: Expose a clean, consistent API to web, mobile, and third-party clients.
@@ -29,8 +29,18 @@ To ensure high availability, security, and performance, the Gateway Service impl
     - Can be scaled horizontally without complex state management.
 
 2. **Authentication & Authorization Enforcement**
-    - Validates JWT/OAuth2 tokens. (TO-DO decide)
+    - Read cookie
+    - Authenticated session validation against Redis
+    - Build security context
     - Checks user roles and permissions before routing requests to internal services.
+
+    Examples:
+    ```
+    /public/**     → allow
+    /cart/**       → allow (anon or auth)
+    /orders/**     → require auth
+    /anlytics/**   → require ADMIN role
+    ```
 
 3. **Rate Limiting & Throttling**
     - Protects backend services from overload.
@@ -43,6 +53,11 @@ To ensure high availability, security, and performance, the Gateway Service impl
 5. **Observability & Logging**
     - Send async metrics and logs for request tracing to InfluxDb/Promethius so Grafana san have statitics.
     - Grafana in turn will be able to have alerts on abnormal request patterns, latency spikes, or failures.
+
+6. **Session Types Managed by Gateway**
+    - Anonymous Session (Gateway-owned) is created when incoming request has no anonymous cookie (cart ownership `cart_anonymous` tables in Cassandra)
+    - for authenticated Session (AuthService-owned) reads cookie, validate session against Redis and build security context
+    - Gateway never creates or mutates authenticated sessions.
 
 
 ## Infrastructure Recommendations
@@ -86,7 +101,8 @@ The Gateway Service is the **critical interface between external clients and int
 
 - It provides a **secure, scalable, and observable entry point**.
 - Handles authentication, authorization, and traffic shaping.
-- Ensures backend services remain protected and resilient.
+- Anonymous and authenticated sessions are clearly separated
+- Ensures backend services remain protected and resilient as downstream services remain stateless and simple.
 - Scales independently to handle varying traffic patterns without impacting business logic services.
 
 

@@ -1,0 +1,311 @@
+version: '3.8'
+
+networks:
+  abstracttrade-network:
+    driver: bridge
+    name: abstracttrade-network
+
+volumes:
+  postgres-auth-data:
+  postgres-product-data:
+  postgres-order-data:
+  postgres-payment-data:
+  postgres-notification-data:
+  cassandra-node1-data:
+  cassandra-node2-data:
+  cassandra-node3-data:
+  redis-catalog-data:
+  redis-ratelimit-data:
+  redis-session-data:
+  kafka-data:
+
+services:
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: postgres-auth
+    environment:
+      POSTGRES_DB: ${POSTGRES_AUTH_DB:-auth_db}
+      POSTGRES_USER: ${POSTGRES_AUTH_USER:-auth_user}
+      POSTGRES_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=en_US.UTF-8"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_AUTH_USER:-auth_user} -d ${POSTGRES_AUTH_DB:-auth_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-product:
+    image: postgres:16-alpine
+    container_name: postgres-product
+    environment:
+      POSTGRES_DB: ${POSTGRES_PRODUCT_DB:-product_db}
+      POSTGRES_USER: ${POSTGRES_PRODUCT_USER:-product_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
+    volumes:
+      - postgres-product-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_PRODUCT_USER:-product_user} -d ${POSTGRES_PRODUCT_DB:-product_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-order:
+    image: postgres:16-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: ${POSTGRES_ORDER_DB:-order_db}
+      POSTGRES_USER: ${POSTGRES_ORDER_USER:-order_user}
+      POSTGRES_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
+    volumes:
+      - postgres-order-data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_ORDER_USER:-order_user} -d ${POSTGRES_ORDER_DB:-order_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-payment:
+    image: postgres:16-alpine
+    container_name: postgres-payment
+    environment:
+      POSTGRES_DB: ${POSTGRES_PAYMENT_DB:-payment_db}
+      POSTGRES_USER: ${POSTGRES_PAYMENT_USER:-payment_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password}
+    volumes:
+      - postgres-payment-data:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_PAYMENT_USER:-payment_user} -d ${POSTGRES_PAYMENT_DB:-payment_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  postgres-notification:
+    image: postgres:16-alpine
+    container_name: postgres-notification
+    environment:
+      POSTGRES_DB: ${POSTGRES_NOTIFICATION_DB:-notification_db}
+      POSTGRES_USER: ${POSTGRES_NOTIFICATION_USER:-notification_user}
+      POSTGRES_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password}
+    volumes:
+      - postgres-notification-data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_NOTIFICATION_USER:-notification_user} -d ${POSTGRES_NOTIFICATION_DB:-notification_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+  
+  redis-catalog:
+    image: redis:7-alpine
+    container_name: redis-catalog
+    command: redis-server --requirepass ${REDIS_CATALOG_PASSWORD:-cache_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-catalog-data:/data
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis-rate-limit:
+    image: redis:7-alpine
+    container_name: redis-rate-limit
+    command: redis-server --requirepass ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password} --maxmemory 256mb --maxmemory-policy volatile-ttl
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-rate-limit-data:/data
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis-session:
+    image: redis:7-alpine
+    container_name: redis-session
+    command: redis-server --requirepass ${REDIS_SESSION_PASSWORD:-session_password} --maxmemory 512mb --maxmemory-policy volatile-lru
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-session-data:/data
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+  
+  cassandra-node1:
+    image: cassandra:4.1
+    container_name: cassandra-node1
+    environment:
+      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
+      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
+      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC1}
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_SEEDS: cassandra-node1
+      HEAP_NEWSIZE: 128M
+      MAX_HEAP_SIZE: 512M
+    volumes:
+      - cassandra-node1-data:/var/lib/cassandra
+    ports:
+      - "9042:9042"
+      - "7000:7000"
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  cassandra-node2:
+    image: cassandra:4.1
+    container_name: cassandra-node2
+    environment:
+      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
+      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
+      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC2}
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_SEEDS: cassandra-node1
+      HEAP_NEWSIZE: 128M
+      MAX_HEAP_SIZE: 512M
+    volumes:
+      - cassandra-node2-data:/var/lib/cassandra
+    ports:
+      - "9043:9042"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      cassandra-node1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  cassandra-node3:
+    image: cassandra:4.1
+    container_name: cassandra-node3
+    environment:
+      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
+      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
+      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC3}
+      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_SEEDS: cassandra-node1
+      HEAP_NEWSIZE: 128M
+      MAX_HEAP_SIZE: 512M
+    volumes:
+      - cassandra-node3-data:/var/lib/cassandra
+    ports:
+      - "9044:9042"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      cassandra-node1:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
