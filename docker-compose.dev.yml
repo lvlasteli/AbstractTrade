@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Development overrides for docker-compose.yml
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
 
@@ -95,14 +93,12 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     ports:
       - "8090:8080"
     networks:
       - abstracttrade-network
     depends_on:
       - kafka
-      - zookeeper
 
 volumes:
   pgadmin-data:

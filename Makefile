@@ -4,7 +4,7 @@ help:
 	@echo "AbstractTrade - Docker Management Commands"
 	@echo ""
 	@echo "Infrastructure Commands:"
-	@echo "  make infra-up - Start all infrastructure services (PostgreSQL, Redis, Cassandra, Kafka)"
+	@echo "  make infra-up - Start all infrastructure services (PostgresSQL, Redis, Cassandra, Kafka)"
 	@echo "  make infra-down - Stop all infrastructure services"
 	@echo "  make init-cassandra - Initialize Cassandra keyspace and tables"
 	# @echo "  make init-postgres-product-db - Initialize postgres product database"
@@ -16,7 +16,7 @@ help:
 	@echo "Microservices Commands:"
 	@echo "  make services-up"
 	@echo "  make services-down"
-	@echo "  make services-build
+	@echo "  make services-build"
 	@echo ""
 	@echo "Combined Commands:"
 	@echo "  make up               - Start infrastructure, wait, then start services"
@@ -34,7 +34,7 @@ help:
 
 infra-up:
 	@echo "Starting shared services..."
-	docker-compose up -f docker-compose.shared.yml -d
+	docker-compose -f docker-compose.shared.yml up -d
 	@echo "Waiting for shared services to be healthy..."
 	@sleep 10
 	@echo "All shared services started successfully!"
@@ -60,10 +60,9 @@ init-cassandra:
 			updated_at TIMESTAMP, \
 			status TEXT, \
 			PRIMARY KEY (user_id, cart_id) \
-			WITH CLUSTERING ORDER BY (cart_id DESC) \
+		) WITH CLUSTERING ORDER BY (cart_id DESC) \
 			AND default_time_to_live = 7776000 \
 			AND comment = 'Main cart records for authenticated users'; \
-		); \
 		\
 		CREATE TABLE IF NOT EXISTS user_cart_items ( \
 			cart_id UUID, \
@@ -73,9 +72,8 @@ init-cassandra:
 			added_at TIMESTAMP, \
 			updated_at TIMESTAMP, \
 			PRIMARY KEY (cart_id, product_id) \
-			WITH CLUSTERING ORDER BY (product_id ASC) \
+		) WITH CLUSTERING ORDER BY (product_id ASC) \
 			AND comment = 'Individual items in authenticated user carts'; \
-		); \
 		\
 		CREATE TABLE IF NOT EXISTS anon_carts ( \
 			session_id TEXT, \
@@ -85,7 +83,7 @@ init-cassandra:
 			updated_at TIMESTAMP, \
 			ip_address TEXT, \
 			PRIMARY KEY (session_id, cart_id) \
-			WITH CLUSTERING ORDER BY (cart_id DESC) \
+		) WITH CLUSTERING ORDER BY (cart_id DESC) \
 			AND default_time_to_live = 2592000 \
 			AND comment = 'Cart records for anon/guest users'; \
 		\
@@ -96,10 +94,9 @@ init-cassandra:
 			price DECIMAL, \
 			added_at TIMESTAMP, \
 			PRIMARY KEY (cart_id, product_id) \
-			WITH CLUSTERING ORDER BY (product_id ASC) \
+		) WITH CLUSTERING ORDER BY (product_id ASC) \
 			AND default_time_to_live = 2592000 \
-			AND comment = 'Individual items in anonymous user carts'; \
-		); \
+			AND comment = 'Individual items in anonymous user carts'; "
 	@echo "Cassandra initialization complete!"
 
 init-postgres-auth-db:
@@ -117,7 +114,8 @@ services-up:
 	@echo "Microservices started successfully!"
 
 services-down:
-	@echo "Stopping microservices..."
+	@echo "Stopping all shared andmicroservice containers"
+	docker-compose -f docker-compose.shared.yml down
 	docker-compose -f docker-compose.services.yml down
 
 up: infra-up
@@ -142,10 +140,10 @@ rebuild:
 	@make restart
 
 logs:
-	docker-compose logs -f & docker-compose -f docker-compose.services.yml logs -f
+	docker-compose logs -f docker-compose.services.yml
 
 logs-infra:
-	docker-compose logs -f
+	docker-compose logs -f docker-compose.shared.yml
 
 logs-services:
 	docker-compose -f docker-compose.services.yml logs -f

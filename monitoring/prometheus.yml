@@ -1,0 +1,103 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'abstracttrade'
+    environment: 'development'
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Gateway Service
+  - job_name: 'gateway-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['gateway-service:8080']
+        labels:
+          service: 'gateway'
+          port: '8080'
+
+  # Auth Service
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['auth-service:8081']
+        labels:
+          service: 'auth'
+          port: '8081'
+
+  # API Service
+  - job_name: 'api-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-service:8082']
+        labels:
+          service: 'api'
+          port: '8082'
+
+  # Product Service
+  - job_name: 'product-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['product-service:8083']
+        labels:
+          service: 'product'
+          port: '8083'
+
+  # Cart Service
+  - job_name: 'cart-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['cart-service:8084']
+        labels:
+          service: 'cart'
+          port: '8084'
+
+  # Payment Service
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['payment-service:8085']
+        labels:
+          service: 'payment'
+          port: '8085'
+
+  # Notification Service
+  - job_name: 'notification-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['notification-service:8086']
+        labels:
+          service: 'notification'
+          port: '8086'
+
+  # Logistics Service
+  - job_name: 'logistics-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['logistics-service:8087']
+        labels:
+          service: 'logistics'
+          port: '8087'
+
+  # Analytics Service
+  - job_name: 'analytics-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['analytics-service:8088']
+        labels:
+          service: 'analytics'
+          port: '8088'
+
+  # Listener Service
+  - job_name: 'listener-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['listener-service:8089']
+        labels:
+          service: 'listener'
+          port: '8089'
+

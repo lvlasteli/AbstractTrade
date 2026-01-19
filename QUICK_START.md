@@ -7,7 +7,7 @@ Get AbstractTrade monorepo up and running
 - **Docker Desktop** 24.0+ with 8GB+ RAM allocated
 - **Docker Compose** 2.20+
 - **Git**
-- **Make** (optional but recommended)
+- **Make** (optional but recommended and add it to path)
 
 ## Step-by-Step Setup
 

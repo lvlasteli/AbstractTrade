@@ -180,7 +180,6 @@ Product Service ──► Kafka Topic: "order.processed"
 - Redis (Rate Limit): 6380
 - Redis (Session): 6381
 - Kafka: 9092
-- Zookeeper: 2181
 
 ### Monitoring
 - Prometheus: 9090
@@ -198,12 +197,11 @@ Product Service ──► Kafka Topic: "order.processed"
    └─► abstracttrade-network (Docker bridge network)
 
 2. Core Infrastructure (Parallel Start)
-   ├─► Zookeeper
    ├─► PostgreSQL (all 5 instances)
-   └─► Redis (all 3 instances)
+   ├─► Redis (all 3 instances)
+   └─► Kafka (KRaft mode)
 
 3. Dependent Infrastructure
-   ├─► Kafka (depends on: Zookeeper)
    └─► Cassandra Node 1
 
 4. Cassandra Cluster Formation

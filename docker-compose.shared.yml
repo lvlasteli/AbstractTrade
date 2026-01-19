@@ -1,5 +1,3 @@
-version: '3.8'
-
 networks:
   abstracttrade-network:
     driver: bridge
@@ -15,9 +13,10 @@ volumes:
   cassandra-node2-data:
   cassandra-node3-data:
   redis-catalog-data:
-  redis-ratelimit-data:
+  redis-rate-limit-data:
   redis-session-data:
   kafka-data:
+  kafka-metadata:
 
 services:
   postgres-auth:
@@ -176,9 +175,16 @@ services:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     environment:
+      KAFKA_KRAFT_MODE: "true"
+      CLUSTER_ID: '${CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}'
       KAFKA_BROKER_ID: 1
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:29093,PLAINTEXT_HOST://:29092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -186,9 +192,11 @@ services:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     volumes:
       - kafka-data:/var/lib/kafka/data
+      - kafka-metadata:/var/lib/kafka/metadata
     ports:
       - "9092:9092"
       - "29092:29092"
+      - "29093:29093"
     networks:
       - abstracttrade-network
     healthcheck:
