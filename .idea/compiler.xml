@@ -2,22 +2,6 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Annotation profile for payment" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="notification" />
-        <module name="auth" />
-        <module name="listener" />
-        <module name="logistics" />
-        <module name="payment" />
-        <module name="api" />
-        <module name="gateway" />
-      </profile>
       <profile name="Annotation profile for product" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -25,14 +9,25 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
+        <module name="analytics" />
+        <module name="notification" />
         <module name="product" />
+        <module name="auth" />
+        <module name="listener" />
+        <module name="logistics" />
+        <module name="payment" />
+        <module name="api" />
+        <module name="gateway" />
+        <module name="cart" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="analytics" options="-parameters" />
       <module name="api" options="-parameters" />
       <module name="auth" options="-parameters" />
+      <module name="cart" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="listener" options="-parameters" />
       <module name="logistics" options="-parameters" />

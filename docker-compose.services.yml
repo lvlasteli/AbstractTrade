@@ -1,0 +1,279 @@
+networks:
+  abstracttrade-network:
+    external: true
+    name: abstracttrade-network
+
+services:  
+  gateway-service:
+    build:
+      context: ./GatewayService/gateway
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8080
+      # Add other environment variables as needed
+    ports:
+      - "8080:8080"
+    networks:
+      - abstracttrade-network
+    depends_on:
+      - auth-service
+      - api-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  auth-service:
+    build:
+      context: ./AuthService/auth
+      dockerfile: Dockerfile
+    container_name: auth-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8081
+      # PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_AUTH_USER:-auth_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password}
+      # Redis Session
+      SPRING_REDIS_HOST: redis-session
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8081:8081"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  api-service:
+    build:
+      context: ./APIService/api
+      dockerfile: Dockerfile
+    container_name: api-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8082
+      # PostgreSQL (connects to both auth and order databases)
+      AUTH_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
+      AUTH_DATASOURCE_USERNAME: ${POSTGRES_AUTH_USER:-auth_user}
+      AUTH_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password}
+      ORDER_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
+      ORDER_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
+      ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
+      # Redis Cache
+      SPRING_REDIS_HOST: redis-catalog
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8082:8082"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  product-service:
+    build:
+      context: ./ProductService/product
+      dockerfile: Dockerfile
+    container_name: product-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8083
+      # PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
+      # Redis Cache
+      SPRING_REDIS_HOST: redis-catalog
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8083:8083"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  cart-service:
+    build:
+      context: ./CartService/cart
+      dockerfile: Dockerfile
+    container_name: cart-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8084
+      # Cassandra
+      SPRING_DATA_CASSANDRA_CONTACT_POINTS: cassandra-node1,cassandra-node2,cassandra-node3
+      SPRING_DATA_CASSANDRA_PORT: 9042
+      SPRING_DATA_CASSANDRA_KEYSPACE_NAME: cart_keyspace
+      SPRING_DATA_CASSANDRA_LOCAL_DATACENTER: ${CASSANDRA_DC:-DC1}
+      # Redis Rate Limit
+      REDIS_RATELIMIT_HOST: redis-ratelimit
+      REDIS_RATELIMIT_PORT: 6379
+      REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8084:8084"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  
+  payment-service:
+    build:
+      context: ./PaymentService/payment
+      dockerfile: Dockerfile
+    container_name: payment-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8085
+      # PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/${POSTGRES_PAYMENT_DB:-payment_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_PAYMENT_USER:-payment_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8085:8085"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  notification-service:
+    build:
+      context: ./NotificationService/notification
+      dockerfile: Dockerfile
+    container_name: notification-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8086
+      # PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/${POSTGRES_NOTIFICATION_DB:-notification_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_NOTIFICATION_USER:-notification_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8086:8086"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  logistics-service:
+    build:
+      context: ./LogisticsService/logistics
+      dockerfile: Dockerfile
+    container_name: logistics-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8087
+      # PostgreSQL (shares product_db)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8087:8087"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  analytics-service:
+    build:
+      context: ./AnalyticsService/analytics
+      dockerfile: Dockerfile
+    container_name: analytics-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8088
+      # PostgreSQL (reads from order_db)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8088:8088"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  
+  listener-service:
+    build:
+      context: ./ListenerService/listener
+      dockerfile: Dockerfile
+    container_name: listener-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8089
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8089:8089"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+
