@@ -44,16 +44,11 @@ services:
       SPRING_REDIS_HOST: redis-session
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8081:8081"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - redis-session
-      - postgres-auth
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
@@ -78,20 +73,14 @@ services:
       ORDER_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
       ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
       # Redis Cache
-      SPRING_REDIS_HOST: redis-cache
+      SPRING_REDIS_HOST: redis-catalog
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8082:8082"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - redis-cache
-      - postgres-auth
-      - postgres-order
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
@@ -114,19 +103,14 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
       # Redis Cache
-      SPRING_REDIS_HOST: redis-cache
+      SPRING_REDIS_HOST: redis-catalog
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8083:8083"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - redis-cache
-      - postgres-product
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
@@ -153,18 +137,11 @@ services:
       REDIS_RATELIMIT_HOST: redis-ratelimit
       REDIS_RATELIMIT_PORT: 6379
       REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8084:8084"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - redis-ratelimit
-      - cassandra-node1
-      - cassandra-node2
-      - cassandra-node3
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
@@ -186,15 +163,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/${POSTGRES_PAYMENT_DB:-payment_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PAYMENT_USER:-payment_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8085:8085"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - postgres-payment
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
@@ -216,15 +189,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/${POSTGRES_NOTIFICATION_DB:-notification_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_NOTIFICATION_USER:-notification_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8086:8086"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - postgres-notification
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
@@ -246,15 +215,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8087:8087"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - postgres-product
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
@@ -276,15 +241,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8088:8088"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
-      - postgres-order
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8088/actuator/health"]
@@ -302,14 +263,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8089
-      # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ports:
       - "8089:8089"
     networks:
       - abstracttrade-network
-    depends_on:
-      - kafka
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]

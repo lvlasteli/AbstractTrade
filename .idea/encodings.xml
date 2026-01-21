@@ -2,7 +2,9 @@
 <project version="4">
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/APIService/api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/AnalyticsService/analytics/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/AuthService/auth/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/CartService/cart/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/GatewayService/gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ListenerService/listener/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/LogisticsService/logistics/src/main/java" charset="UTF-8" />
