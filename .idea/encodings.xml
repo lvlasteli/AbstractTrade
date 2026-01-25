@@ -8,6 +8,7 @@
     <file url="file://$PROJECT_DIR$/GatewayService/gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ListenerService/listener/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/LogisticsService/logistics/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/MetricsService/metrics/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/NotificationService/notification/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/PaymentService/payment/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/ProductService/product/src/main/java" charset="UTF-8" />

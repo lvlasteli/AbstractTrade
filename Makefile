@@ -1,4 +1,4 @@
-.PHONY: help shared-up infra-down services-up services-down up down restart logs clean rebuild init-cassandra wait-for-health
+.PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild init-cassandra wait-for-health
 
 # Helper function to wait for a single container to be healthy
 # Usage: $(call wait-for-container,container-name,max-wait-seconds)
@@ -89,7 +89,7 @@ help:
 	@echo ""
 	@echo "Infrastructure Commands:"
 	@echo "  make shared-up - Start all infrastructure services (PostgresSQL, Redis, Cassandra, Kafka)"
-	@echo "  make infra-down - Stop all infrastructure services"
+	@echo "  make shared-down - Stop all infrastructure services"
 	@echo "  make init-cassandra - Initialize Cassandra keyspace and tables"
 	# @echo "  make init-postgres-product-db - Initialize postgres product database"
 	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
@@ -99,7 +99,7 @@ help:
 	@echo ""
 	@echo "Microservices Commands:"
 	@echo "  make services-up"
-	@echo "  make services-down"
+	@echo "  make all-down"
 	@echo "  make services-build"
 	@echo ""
 	@echo "Combined Commands:"
@@ -135,7 +135,7 @@ shared-up:
 	@$(call wait-for-cassandra-node,cassandra-node3,500)
 	@echo "All shared services started successfully!"
 
-infra-down:
+shared-down:
 	@echo "Stopping shared services..."
 	docker-compose -f docker-compose.shared.yml down
 
@@ -161,6 +161,11 @@ services-up:
 	@echo "Microservices started successfully!"
 
 services-down:
+	@echo "Stopping microservices..."
+	docker-compose -f docker-compose.services.yml down
+	@echo "Microservices stopped successfully!"
+
+all-down:
 	@echo "Stopping all shared andmicroservice containers"
 	docker-compose -f docker-compose.shared.yml down
 	docker-compose -f docker-compose.services.yml down
@@ -174,7 +179,7 @@ up: shared-up
 	@echo "Gateway: http://localhost:8080"
 	@echo "Grafana: http://localhost:3000"
 
-down: services-down infra-down
+down: all-down
 	@echo "All services stopped!"
 
 restart: down up

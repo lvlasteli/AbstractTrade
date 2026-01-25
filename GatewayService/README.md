@@ -34,13 +34,7 @@ To ensure high availability, security, and performance, the Gateway Service impl
     - Build security context
     - Checks user roles and permissions before routing requests to internal services.
 
-    Examples:
-    ```
-    /public/**     → allow
-    /cart/**       → allow (anon or auth)
-    /orders/**     → require auth
-    /anlytics/**   → require ADMIN role
-    ```
+> ** API Endpoints Documentation**: See [ENDPOINTS.md](./ENDPOINTS.md) for the complete API endpoint reference including routes, authorization rules, request/response examples, and rate limiting.
 
 3. **Rate Limiting & Throttling**
     - Protects backend services from overload.
@@ -81,6 +75,7 @@ To maximize **availability, scalability, and security**, the Gateway Service sho
 
 - **Separation from Internal Services**
     - Does **not** share runtime or resources with internal services. so it minimizes blast radius in case of failure or attack.
+
 
 
 ## Protection Layers
