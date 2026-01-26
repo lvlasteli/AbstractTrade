@@ -10,4 +10,5 @@ public final class KafkaConstants {
     public static final String USER_REGISTERED = "USER_REGISTERED";
     public static final String PASSWORD_CHANGED = "PASSWORD_CHANGED";
     public static final String PASSWORD_RESET_REQUESTED = "PASSWORD_RESET_REQUESTED";
+    public static final String AUTHENTICATION_FAILED = "AUTHENTICATION_FAILED";
 }

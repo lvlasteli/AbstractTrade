@@ -1,6 +1,7 @@
 package com.example.auth.exception;
 
 import com.example.auth.constants.ErrorMsg;
+import com.example.auth.exception.GatewayAccessDeniedException;
 import com.example.auth.model.dto.response.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -60,6 +61,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException ex) {
         return buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ErrorMsg.RATE_LIMIT_EXCEEDED, ex.getMessage());
+    }
+
+    @ExceptionHandler(GatewayAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleGatewayAccessDenied(GatewayAccessDeniedException ex) {
+        log.warn("Gateway access denied: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ErrorMsg.GATEWAY_ACCESS_DENIED, 
+                ErrorMsg.GATEWAY_ACCESS_DENIED_MESSAGE);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String error, String message) {

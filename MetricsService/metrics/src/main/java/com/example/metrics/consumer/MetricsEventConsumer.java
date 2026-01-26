@@ -3,6 +3,7 @@ package com.example.metrics.consumer;
 import com.example.shared.events.constants.KafkaConstants;
 import com.example.shared.events.schema.AccountLockedEvent;
 import com.example.shared.events.schema.AuthEvent;
+import com.example.shared.events.schema.AuthenticationFailedEvent;
 import com.example.shared.events.schema.UserLoggedInEvent;
 import com.example.shared.events.schema.UserLoggedOutEvent;
 import com.example.shared.events.schema.UserRegisteredEvent;
@@ -66,6 +67,9 @@ public class MetricsEventConsumer {
                 case KafkaConstants.ACCOUNT_LOCKED:
                     processAccountLocked((AccountLockedEvent) event);
                     break;
+                case KafkaConstants.AUTHENTICATION_FAILED:
+                    processAuthenticationFailed((AuthenticationFailedEvent) event);
+                    break;
                 default:
                     log.warn("Unknown event type: {}, event: {}", eventType, event);
             }
@@ -104,5 +108,12 @@ public class MetricsEventConsumer {
                 event.getUserId(), event.getEmail(), event.getReason(),
                 event.getFailedAttempts(), event.getLastFailedIp());
         // TODO: Store security metrics (lockout frequency, failed attempts, IP tracking, etc.)
+    }
+
+    private void processAuthenticationFailed(AuthenticationFailedEvent event) {
+        log.info("Processing AUTHENTICATION_FAILED event - UserId: {}, Identifier: {}, FailureReason: {}, IP: {}, FailedAttempts: {}, Device: {}",
+                event.getUserId(), event.getIdentifier(), event.getFailureReason(),
+                event.getIpAddress(), event.getFailedAttempts(), event.getDeviceInfo());
+        // TODO: Store authentication failure metrics (failure count, IP tracking, brute-force detection, failure reason distribution, etc.)
     }
 }

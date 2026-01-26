@@ -37,7 +37,8 @@ public class AuthEventPublisher {
             KafkaConstants.USER_LOGGED_IN,
             KafkaConstants.USER_LOGGED_OUT,
             KafkaConstants.USER_REGISTERED,
-            KafkaConstants.ACCOUNT_LOCKED
+            KafkaConstants.ACCOUNT_LOCKED,
+            KafkaConstants.AUTHENTICATION_FAILED
     );
 
     public void publish(AuthEvent event) {

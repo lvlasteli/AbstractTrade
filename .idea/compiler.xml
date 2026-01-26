@@ -12,7 +12,7 @@
         </processorPath>
         <module name="shared-events" />
       </profile>
-      <profile name="Annotation profile for metrics" enabled="true">
+      <profile name="Annotation profile for auth" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -26,10 +26,10 @@
         <module name="listener" />
         <module name="logistics" />
         <module name="payment" />
-        <module name="metrics" />
         <module name="api" />
-        <module name="gateway" />
+        <module name="metrics" />
         <module name="cart" />
+        <module name="gateway" />
       </profile>
     </annotationProcessing>
   </component>
