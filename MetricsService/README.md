@@ -17,7 +17,7 @@ The Metrics Service is fully **event-driven**, decoupled from business services,
 ### High-Level Flow
 
 ```
-Kafka Topic: auth.metrics
+Kafka Topic: auth_metrics
    ↓
 Metrics Service (Kafka Consumer)
    ↓
@@ -28,7 +28,7 @@ Prometheus/Grafana (Future: Metrics Export)
 
 ### Event Consumption
 
-The service consumes metric events from the `auth.metrics` Kafka topic, which includes:
+The service consumes metric events from the `auth_metrics` Kafka topic, which includes:
 
 * **`USER_LOGGED_IN`** - Track successful authentication events, login frequency, and user activity patterns
 * **`USER_LOGGED_OUT`** - Monitor session termination and user logout patterns
@@ -39,7 +39,7 @@ The service consumes metric events from the `auth.metrics` Kafka topic, which in
 ## Current Implementation Status
 
 ### Phase 1: Event Consumption (Current)
-* Kafka consumer configured to listen to `auth.metrics` topic
+* Kafka consumer configured to listen to `auth_metrics` topic
 * Event consumers log received messages
 * **TODO**: Implement time-series database integration (InfluxDB/TimescaleDB)
 * **TODO**: Implement metric aggregation and storage logic
@@ -76,7 +76,7 @@ The service consumes metric events from the `auth.metrics` Kafka topic, which in
 
 * **Spring Boot 4.0.1** - Application framework
 * **Apache Kafka** - Event streaming platform
-* **Kafka Consumer** - Consume metric events from `auth.metrics` topic
+* **Kafka Consumer** - Consume metric events from `auth_metrics` topic
 * **Future: InfluxDB/TimescaleDB** - Time-series database for metric storage
 * **Future: Prometheus** - Metrics export and querying
 

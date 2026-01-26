@@ -55,6 +55,17 @@ Notification Service
 
 The Notification Service consumes domain events, evaluates notification rules, and delivers messages through the appropriate channels.
 
+### Events Consumed from Auth Service
+
+The Notification Service consumes notification events from the `auth_notifications` Kafka topic, which includes:
+
+* **`PASSWORD_RESET_REQUESTED`** - User requests password reset (forgot password). Service should send reset email with reset token.
+* **`ACCOUNT_LOCKED`** - User account has been locked due to security reasons (e.g., too many failed login attempts). Service should send security alert email to user.
+* **`USER_REGISTERED`** - New user has registered. Service should send welcome email.
+* **`PASSWORD_CHANGED`** - User has successfully changed their password. Service should send confirmation email.
+
+These events are published by the Auth Service and consumed by the Notification Service for user-facing communications.
+
 
 ### Delivery and Retry Strategy
 

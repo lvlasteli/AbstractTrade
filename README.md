@@ -6,6 +6,17 @@
 
 - **[QUICK_START.md](QUICK_START.md)** - Get started in 5 minutes
 
+## Service Documentation
+
+Each microservice has its own detailed README with architecture, API endpoints, configuration, and usage instructions:
+
+- **[AuthService](AuthService/README.md)** - User authentication, authorization, and session management
+- **[GatewayService](GatewayService/README.md)** - API Gateway, request routing, rate limiting, and IP blocking
+- **[MetricsService](MetricsService/README.md)** - Metrics collection, aggregation, and monitoring
+- **[NotificationService](NotificationService/README.md)** - Email, SMS, and push notification delivery
+- **[AnalyticsService](AnalyticsService/README.md)** - Business analytics, reporting, and insights
+- **[ListenerService](ListenerService/README.md)** - Third-party webhook handling and event processing
+
 # High-Level Architecture
 
 ## 1. Microservices & Kafka Messaging

@@ -2,9 +2,9 @@ package com.example.auth.service;
 
 import com.example.auth.constants.ErrorMsg;
 import com.example.auth.event.AuthEventPublisher;
-import com.example.auth.event.schema.AccountLockedEvent;
-import com.example.auth.event.schema.UserLoggedInEvent;
-import com.example.auth.event.schema.UserLoggedOutEvent;
+import com.example.shared.events.schema.AccountLockedEvent;
+import com.example.shared.events.schema.UserLoggedInEvent;
+import com.example.shared.events.schema.UserLoggedOutEvent;
 import com.example.auth.exception.AccountLockedException;
 import com.example.auth.exception.InvalidCredentialsException;
 import com.example.auth.exception.SessionNotFoundException;

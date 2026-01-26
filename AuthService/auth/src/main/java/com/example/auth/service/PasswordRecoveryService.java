@@ -2,8 +2,8 @@ package com.example.auth.service;
 
 import com.example.auth.constants.ErrorMsg;
 import com.example.auth.event.AuthEventPublisher;
-import com.example.auth.event.schema.PasswordChangedEvent;
-import com.example.auth.event.schema.PasswordResetRequestedEvent;
+import com.example.shared.events.schema.PasswordChangedEvent;
+import com.example.shared.events.schema.PasswordResetRequestedEvent;
 import com.example.auth.exception.InvalidCredentialsException;
 import com.example.auth.exception.RateLimitExceededException;
 import com.example.auth.model.dto.request.PasswordForgotRequest;

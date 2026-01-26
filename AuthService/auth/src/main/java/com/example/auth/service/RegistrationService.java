@@ -1,7 +1,7 @@
 package com.example.auth.service;
 
 import com.example.auth.event.AuthEventPublisher;
-import com.example.auth.event.schema.UserRegisteredEvent;
+import com.example.shared.events.schema.UserRegisteredEvent;
 import com.example.auth.model.dto.request.RegisterRequest;
 import com.example.auth.model.dto.request.RequestMetadata;
 import com.example.auth.model.dto.response.AuthResponse;

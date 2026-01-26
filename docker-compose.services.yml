@@ -276,4 +276,26 @@ services:
       retries: 3
       start_period: 40s
 
+  
+  metrics-service:
+    build:
+      context: ./MetricsService/metrics
+      dockerfile: Dockerfile
+    container_name: metrics-service
+    environment:
+      SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
+      SERVER_PORT: 8090
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8090:8090"
+    networks:
+      - abstracttrade-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 

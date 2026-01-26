@@ -1,6 +1,6 @@
 package com.example.auth.config;
 
-import com.example.auth.event.schema.AuthEvent;
+import com.example.shared.events.schema.AuthEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-public class KafkaConfig {
+public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers:localhost:29092}")
     private String bootstrapServers;

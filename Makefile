@@ -1,4 +1,4 @@
-.PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild init-cassandra wait-for-health
+.PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild init-cassandra wait-for-health kafka-topics kafka-topics-delete cassandra-reset-node2 cassandra-replace-node2
 
 # Helper function to wait for a single container to be healthy
 # Usage: $(call wait-for-container,container-name,max-wait-seconds)
@@ -96,6 +96,8 @@ help:
 	# @echo "  make init-postgres-order-db - Initialize postgres order database"
 	# @echo "  make init-postgres-payment-db - Initialize postgres payment database"
 	# @echo "  make init-postgres-notification-db - Initialize postgres notification database"
+	@echo "  make kafka-topics - Create Kafka topics (auth_notifications, auth_metrics)"
+	@echo "  make kafka-topics-delete - Delete Kafka topics (auth_notifications, auth_metrics)"
 	@echo ""
 	@echo "Microservices Commands:"
 	@echo "  make services-up"
@@ -133,7 +135,10 @@ shared-up:
 	@echo "Waiting for Cassandra cluster nodes to be ready..."
 	@$(call wait-for-cassandra-node,cassandra-node2,500)
 	@$(call wait-for-cassandra-node,cassandra-node3,500)
+	@echo "Creating Kafka topics..."
+	@make kafka-topics
 	@echo "All shared services started successfully!"
+	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
 
 shared-down:
 	@echo "Stopping shared services..."
@@ -150,6 +155,21 @@ init-postgres-auth-db:
 	@echo "Initializing postgres auth database..."
 	docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/init-postgres-auth-db.sql
 	@echo "Postgres auth database initialized successfully!"
+
+drop-postgres-auth-db:
+	@echo "Dropping postgres auth database..."
+	docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/drop-postgres-auth-db.sql
+	@echo "Postgres auth database dropped successfully!"
+
+kafka-topics:
+	@echo "Waiting for Kafka to be ready..."
+	@$(call wait-for-container,kafka,120)
+	@bash scripts/create-kafka-topics.sh
+
+kafka-topics-delete:
+	@echo "Waiting for Kafka to be ready..."
+	@$(call wait-for-container,kafka,120)
+	@bash scripts/delete-kafka-topics.sh
 
 services-build:
 	@echo "Building all microservices..."

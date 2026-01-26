@@ -15,6 +15,7 @@
         <option value="$PROJECT_DIR$/CartService/cart/pom.xml" />
         <option value="$PROJECT_DIR$/AnalyticsService/analytics/pom.xml" />
         <option value="$PROJECT_DIR$/MetricsService/metrics/pom.xml" />
+        <option value="$PROJECT_DIR$/SharedEvents/shared-events/pom.xml" />
       </list>
     </option>
   </component>
