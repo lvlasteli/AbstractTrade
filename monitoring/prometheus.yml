@@ -101,3 +101,10 @@ scrape_configs:
           service: 'listener'
           port: '8089'
 
+  - job_name: 'metrics-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['metrics-service:8090']
+        labels:
+          service: 'listener'
+          port: '8090'

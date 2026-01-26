@@ -2,7 +2,17 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
-      <profile name="Annotation profile for product" enabled="true">
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Annotation profile for shared-events" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
+        </processorPath>
+        <module name="shared-events" />
+      </profile>
+      <profile name="Annotation profile for metrics" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -16,6 +26,7 @@
         <module name="listener" />
         <module name="logistics" />
         <module name="payment" />
+        <module name="metrics" />
         <module name="api" />
         <module name="gateway" />
         <module name="cart" />
@@ -31,6 +42,7 @@
       <module name="gateway" options="-parameters" />
       <module name="listener" options="-parameters" />
       <module name="logistics" options="-parameters" />
+      <module name="metrics" options="-parameters" />
       <module name="notification" options="-parameters" />
       <module name="payment" options="-parameters" />
       <module name="product" options="-parameters" />

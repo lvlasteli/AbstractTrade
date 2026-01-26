@@ -50,7 +50,7 @@ CREATE INDEX idx_user_roles_user ON user_roles(user_id);
 CREATE INDEX idx_user_roles_role ON user_roles(role_id);
 
 CREATE TABLE IF NOT EXISTS permissions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     resource VARCHAR(100) NOT NULL,
     action VARCHAR(50) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 CREATE TABLE IF NOT EXISTS role_permissions (
     role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
-    permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+    permission_id BIGINT NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
     PRIMARY KEY (role_id, permission_id)
 );
 

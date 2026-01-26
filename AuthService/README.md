@@ -7,6 +7,11 @@ The **AuthService** is the single source of truth for **user identity, authentic
 AuthService is intentionally **not on the hot path** for every request. After login, request authentication is handled via Redis-backed sessions validated at the Gateway layer.
 
 
+## Local Development Setup
+
+> **For detailed local development setup instructions**, see [QUICK_START.md](./QUICK_START.md#local-development---authservice)
+
+
 ## Challenges
 
 Designing authentication for this platform introduces several challenges:
@@ -126,21 +131,33 @@ Monitoring is critical to ensure reliability, security, and performance of authe
 
 ## Monitoring
 
-Critical alerts should be configured for:
-* **High authentication failure rates** - Potential brute force attacks
-* **Redis connectivity issues** - Session storage unavailable
-* **Database connection problems** - Cannot validate credentials
-* **Unusual authentication patterns** - Potential security incidents
-* **Session storage capacity** - Redis memory approaching limits
-
-> Prometheus/InfluxDB can be used for metrics collection and Grafana dashboards for visualization and alerting
-
+> **For critical alerts and monitoring configuration**, see [MetricsService/README.md](../MetricsService/README.md#critical-alerts)
 
 ## API Endpoints
 
-The AuthService exposes the following endpoints for authentication operations:
+The AuthService exposes the following endpoints for authentication operations.
+
+> **📖 Complete API Documentation**: See [GatewayService/ENDPOINTS.md](../GatewayService/ENDPOINTS.md) for the full endpoint documentation including request/response examples, rate limiting, and authorization rules for all services.
 
 ### Authentication Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/auth/register` | POST | No | Register new user account |
+| `/auth/login` | POST | No | Validate credentials, create session, return cookie |
+| `/auth/logout` | POST | Yes | Revoke session, clear cookie |
+| `/auth/refresh` | POST | Yes | Extend session lifetime |
+| `/auth/password/forgot` | POST | No | Initiate password reset |
+| `/auth/password/reset` | POST | No | Complete password reset with token |
+
+### Session Management Endpoints
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/auth/session/validate` | GET | Internal | Gateway validates session (not exposed to clients) |
+| `/auth/session/current` | GET | Yes | Get current authenticated user info |
+
+### Endpoint Details
 
 * **`POST /auth/login`**
   * Validates user credentials (email/username + password)
@@ -158,8 +175,6 @@ The AuthService exposes the following endpoints for authentication operations:
   * Updates Redis TTL
   * Returns new cookie if applicable
 
-### Session Management Endpoints
-
 * **`GET /auth/session/validate`** (Internal)
   * Validates session token
   * Returns user identity and roles
@@ -169,6 +184,52 @@ The AuthService exposes the following endpoints for authentication operations:
 * **`GET /auth/session/current`**
   * Returns current authenticated user information
   * Requires valid session cookie
+
+### Rate Limiting
+
+Rate limiting is implemented using a **defense-in-depth** strategy across Gateway and AuthService:
+
+#### Gateway Service (IP-Based Protection)
+* **Login Attempts (Per IP)**: 10 failed attempts per 15 minutes → temporary IP block (1 hour)
+* **Registration (Per IP)**: 5 registrations per IP per hour
+* **Session Refresh**: 10 requests per session per minute
+
+> **Note**: Gateway handles IP-based rate limiting as the first line of defense. See [GatewayService/README.md](../GatewayService/README.md) for details.
+
+#### AuthService (User-Based Protection)
+* **Login Attempts (Per User)**: 5 failed attempts per 15 minutes → account lockout (15 minutes)
+* **Login Attempts (Per User, Repeated)**: 10 failed attempts per 1 hour → account lockout (24 hours) + notification
+* **Password Reset (Per User)**: 3 requests per user per hour
+
+> **Note**: AuthService handles user-based rate limiting that requires user identification and integrates with account lockout logic.
+
+### Account Lockout
+
+* **Automatic Lockout**: After exceeding failed login threshold
+* **Lockout Duration**: Progressive (15 min → 1 hour → 24 hours)
+* **Unlock Methods**:
+  * Time-based automatic unlock
+  * Password reset flow
+  * Admin manual unlock
+* **Notification**: Email sent on account lockout
+* **Audit**: All lockout events logged to `authentication_events`
+
+### Session Security
+
+* **Session Lifetime**: 24 hours (configurable)
+* **Idle Timeout**: 30 minutes of inactivity
+* **Concurrent Sessions**: Maximum 3 active sessions per user
+* **Session Rotation**: New session ID on privilege elevation
+* **Device Tracking**: Store device fingerprint (User-Agent, IP) for suspicious activity detection
+* **IP Binding**: Optional strict IP binding for admin sessions
+
+### Security Headers
+
+* **Cookie Attributes**: `HttpOnly; Secure; SameSite=Lax; Path=/`
+* **CSRF Protection**: Token validation for state-changing operations
+* **CORS**: Whitelist allowed origins (configured via environment)
+
+When running AuthService locally (outside Docker), it connects to dockerized Kafka and Redis services using `localhost` with exposed ports. The configuration defaults to `localhost:29092` for Kafka and `localhost:6381` for Redis, which can be overridden via environment variables for Docker deployment.
 
 ## Database Schema Reference
 
