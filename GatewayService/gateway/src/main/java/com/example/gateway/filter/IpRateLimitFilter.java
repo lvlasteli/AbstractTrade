@@ -1,5 +1,6 @@
 package com.example.gateway.filter;
 
+import com.example.gateway.constants.ErrorMsg;
 import com.example.gateway.exception.IpBlockedException;
 import com.example.gateway.exception.RateLimitExceededException;
 import com.example.gateway.service.IpBlockingService;
@@ -10,22 +11,31 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class IpRateLimitFilter extends OncePerRequestFilter {
 
     private final IpBlockingService ipBlockingService;
     private final IpRateLimitService ipRateLimitService;
+    private final HandlerExceptionResolver resolver;
+
+    public IpRateLimitFilter(IpBlockingService ipBlockingService, 
+                             IpRateLimitService ipRateLimitService,
+                             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+        this.ipBlockingService = ipBlockingService;
+        this.ipRateLimitService = ipRateLimitService;
+        this.resolver = resolver;
+    }
 
     private static final String LOGIN_PATH = "/auth/login";
     private static final String REGISTER_PATH = "/auth/register";
@@ -37,7 +47,6 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
         String requestPath = request.getRequestURI();
         String method = request.getMethod();
 
-        // Only process POST requests to login and register endpoints
         if (!"POST".equals(method) || (!requestPath.equals(LOGIN_PATH) && !requestPath.equals(REGISTER_PATH))) {
             filterChain.doFilter(request, response);
             return;
@@ -48,21 +57,21 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
         try {
             if (ipBlockingService.isIpBlocked(ipAddress)) {
                 log.warn("Request from blocked IP: {} to {}", ipAddress, requestPath);
-                throw new IpBlockedException("IP temporarily blocked. Try again later.");
+                throw new IpBlockedException(ErrorMsg.IP_TEMPORARILY_BLOCKED);
             }
 
             if (requestPath.equals(LOGIN_PATH)) {
                 handleLoginRequest(ipAddress, request, response, filterChain);
                 return;
             }
-            else if (requestPath.equals(REGISTER_PATH)) {
+            else {
                 handleRegisterRequest(ipAddress);
             }
 
             filterChain.doFilter(request, response);
 
         } catch (IpBlockedException | RateLimitExceededException e) {
-            throw e;  // These exceptions will be handled by GlobalExceptionHandler
+            resolver.resolveException(request, response, null, e);
         }
     }
 
@@ -73,7 +82,7 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
             long attempts = ipRateLimitService.recordFailedLoginByIp(ipAddress);
             ipBlockingService.blockIp(ipAddress, "Login rate limit exceeded", attempts, request.getHeader("User-Agent"));
             log.warn("IP rate limit exceeded for login, blocking IP: {}", ipAddress);
-            throw new RateLimitExceededException("Too many login attempts from this IP. Please try again later.");
+            throw new RateLimitExceededException(ErrorMsg.TOO_MANY_LOGIN_ATTEMPTS_FROM_IP);
         }
 
         HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response) {
@@ -115,9 +124,8 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
     private void handleRegisterRequest(String ipAddress) {
         if (ipRateLimitService.isRegistrationRateLimited(ipAddress)) {
             log.warn("Registration rate limit exceeded for IP: {}", ipAddress);
-            throw new RateLimitExceededException("Too many registration attempts from this IP. Please try again later.");
+            throw new RateLimitExceededException(ErrorMsg.TOO_MANY_REGISTRATION_ATTEMPTS);
         }
-        // Record registration attempt
         ipRateLimitService.recordRegistrationByIp(ipAddress);
     }
 }

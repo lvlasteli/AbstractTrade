@@ -25,12 +25,7 @@ public class IpBlockingService {
 
     public boolean isIpBlocked(String ipAddress) {
         String key = RedisConstants.LOCKOUT_IP_PREFIX + ipAddress;
-        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(key));
-    }
-
-
-    public void blockIp(String ipAddress) {
-        blockIp(ipAddress, "Rate limit exceeded", null, null);
+        return stringRedisTemplate.hasKey(key);
     }
 
     public void blockIp(String ipAddress, String reason, Long failedAttempts, String userAgent) {
