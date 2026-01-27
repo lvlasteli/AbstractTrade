@@ -11,19 +11,31 @@ echo "Current topics:"
 docker exec kafka kafka-topics --list --bootstrap-server localhost:9092
 echo ""
 
-# Delete auth_notifications topic if it exists
 echo "Deleting topic: auth_notifications"
 docker exec kafka kafka-topics --delete \
   --bootstrap-server localhost:9092 \
   --topic auth_notifications \
-  2>/dev/null && echo "  ✓ auth_notifications deleted" || echo "  ✗ auth_notifications not found or already deleted"
+  2>/dev/null && echo "auth_notifications deleted" || echo "auth_notifications not found or already deleted"
 
-# Delete auth_metrics topic if it exists
 echo "Deleting topic: auth_metrics"
 docker exec kafka kafka-topics --delete \
   --bootstrap-server localhost:9092 \
   --topic auth_metrics \
-  2>/dev/null && echo "  ✓ auth_metrics deleted" || echo "  ✗ auth_metrics not found or already deleted"
+  2>/dev/null && echo "auth_metrics deleted" || echo "auth_metrics not found or already deleted"
+
+
+echo "Deleting topic: gateway_notifications"
+docker exec kafka kafka-topics --delete \
+  --bootstrap-server localhost:9092 \
+  --topic gateway_notifications \
+  2>/dev/null && echo "gateway_notifications deleted" || echo "gateway_notifications not found or already deleted"
+
+  
+echo "Deleting topic: product_metrics"
+docker exec kafka kafka-topics --delete \
+  --bootstrap-server localhost:9092 \
+  --topic product_metrics \
+  2>/dev/null && echo "product_metrics deleted" || echo "product_metrics not found or already deleted"
 
 echo ""
 echo "Topics deleted successfully!"

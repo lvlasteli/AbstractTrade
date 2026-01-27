@@ -17,6 +17,21 @@ docker exec kafka kafka-topics --create \
   --replication-factor 1 \
   --if-not-exists
 
+  docker exec kafka kafka-topics --create \
+  --bootstrap-server localhost:9092 \
+  --topic gateway_notifications \
+  --partitions 3 \
+  --replication-factor 1 \
+  --if-not-exists
+
+  docker exec kafka kafka-topics --create \
+  --bootstrap-server localhost:9092 \
+  --topic product_metrics \
+  --partitions 3 \
+  --replication-factor 1 \
+  --if-not-exists
+
+
 echo "Topics created successfully!"
 echo ""
 echo "Listing all topics:"

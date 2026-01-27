@@ -1,6 +1,6 @@
 package com.example.gateway.controller;
 
-import com.example.gateway.client.AuthServiceClient;
+import com.example.gateway.client.ProductServiceClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
@@ -17,12 +17,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/products")
 @RequiredArgsConstructor
 @Slf4j
-public class AuthProxyController {
+public class ProductProxyController {
 
-    private final AuthServiceClient authServiceClient;
+    @Value("${gateway.service.secret.header-name:X-Gateway-Request}")
+    private String headerName;
+
+    private final ProductServiceClient productServiceClient;
     private final ObjectMapper objectMapper;
 
     @RequestMapping(value = "/**", method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE})
@@ -31,21 +34,22 @@ public class AuthProxyController {
             HttpServletRequest request) {
         
         try {
+            var header = request.getHeader(headerName);
             String path = request.getRequestURI();
             String method = request.getMethod();
-            log.debug("Proxying {} {} {} to AuthService", method, path);
+            log.debug("Proxying {} {} {} to ProductService", method, path, header);
             
             return switch (method) {
-                case "GET" -> authServiceClient.forwardGetRequest(path);
-                case "POST" -> authServiceClient.forwardPostRequest(path, body);
-                case "PUT" -> authServiceClient.forwardPutRequest(path, body);
-                case "DELETE" -> authServiceClient.forwardDeleteRequest(path);
+                case "GET" -> productServiceClient.forwardGetRequest(path);
+                case "POST" -> productServiceClient.forwardPostRequest(path, body);
+                case "PUT" -> productServiceClient.forwardPutRequest(path, body);
+                case "DELETE" -> productServiceClient.forwardDeleteRequest(path);
                 default -> ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                         .body(Map.of("error", "Method not allowed", "method", method));
             };
             
         } catch (FeignException e) {
-            log.error("Error forwarding to AuthService: {} - Status: {}", e.getMessage(), e.status());
+            log.error("Error forwarding to ProductService: {} - Status: {}", e.getMessage(), e.status());
             return buildErrorResponse(e);
         }
     }
@@ -61,7 +65,7 @@ public class AuthProxyController {
                 );
                 return ResponseEntity.status(e.status()).body(parsedResponse);
             } catch (Exception ex) {
-                log.warn("Failed to parse Auth Service error response, returning as string: {}", ex.getMessage());
+                log.warn("Failed to parse Product Service error response, returning as string: {}", ex.getMessage());
             }
         }
         
