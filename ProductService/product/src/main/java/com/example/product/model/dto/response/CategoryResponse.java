@@ -18,6 +18,6 @@ public class CategoryResponse {
     private String description;
     private String slug;
     private String imageUrl;
-    private Long productCount;
+    private Long productCount; //this should be calculated dynamiclly and not cached
     private Instant createdAt;
 }

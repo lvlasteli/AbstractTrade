@@ -37,13 +37,24 @@ public class ProductProxyController {
             var header = request.getHeader(headerName);
             String path = request.getRequestURI();
             String method = request.getMethod();
+            
+            // Extract query parameters using Spring's built-in parsing
+            Map<String, String> queryParams = new HashMap<>();
+            request.getParameterMap().forEach((key, values) -> {
+                if (values != null && values.length > 0) {
+                    queryParams.put(key, values[0]); // Take first value if multiple
+                } else {
+                    queryParams.put(key, "");
+                }
+            });
+            
             log.debug("Proxying {} {} {} to ProductService", method, path, header);
             
             return switch (method) {
-                case "GET" -> productServiceClient.forwardGetRequest(path);
-                case "POST" -> productServiceClient.forwardPostRequest(path, body);
-                case "PUT" -> productServiceClient.forwardPutRequest(path, body);
-                case "DELETE" -> productServiceClient.forwardDeleteRequest(path);
+                case "GET" -> productServiceClient.forwardGetRequest(path, queryParams);
+                case "POST" -> productServiceClient.forwardPostRequest(path, queryParams, body);
+                case "PUT" -> productServiceClient.forwardPutRequest(path, queryParams, body);
+                case "DELETE" -> productServiceClient.forwardDeleteRequest(path, queryParams);
                 default -> ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                         .body(Map.of("error", "Method not allowed", "method", method));
             };

@@ -25,4 +25,7 @@ public interface ProductRepository extends PagingAndSortingRepository<Product, U
         String description, 
         Pageable pageable
     );
+    
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.category.id = :categoryId AND p.isActive = true")
+    long countByCategoryIdAndIsActive(@Param("categoryId") UUID categoryId);
 }

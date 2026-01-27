@@ -1,10 +1,8 @@
 package com.example.product.controller;
 
 import com.example.product.model.dto.request.PaginationRequest;
-import com.example.product.model.dto.response.CategoryResponse;
 import com.example.product.model.dto.response.PageResponse;
 import com.example.product.model.dto.response.ProductResponse;
-import com.example.product.service.CategoryService;
 import com.example.product.service.ProductService;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,7 +22,6 @@ import java.util.UUID;
 public class ProductController {
     
     private final ProductService productService;
-    private final CategoryService categoryService;
     
     @GetMapping
     public ResponseEntity<PageResponse<ProductResponse>> getAllProducts(
@@ -50,35 +47,10 @@ public class ProductController {
             @RequestParam String q,
             @Valid @ModelAttribute PaginationRequest pagination) {
         
-        // Apply defaults if null (when query params not provided)
         int page = pagination.getPage() != null ? pagination.getPage() : 0;
         int size = pagination.getSize() != null ? pagination.getSize() : 20;
         
-        PageResponse<ProductResponse> response = productService.searchProducts(q, page, size)
-            .orElse(PageResponse.<ProductResponse>builder()
-                .content(List.of())
-                .page(page)
-                .size(size)
-                .totalElements(0)
-                .totalPages(0)
-                .hasNext(false)
-                .hasPrevious(false)
-                .build());
+        PageResponse<ProductResponse> response = productService.searchProducts(q, page, size);
         return ResponseEntity.ok(response);
-    }
-    
-    @GetMapping("/categories")
-    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
-        List<CategoryResponse> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(categories);
-    }
-    
-    @GetMapping("/categories/{id}")
-    public ResponseEntity<CategoryResponse> getCategoryById(
-            @PathVariable UUID id,
-            @Valid @ModelAttribute PaginationRequest pagination) {
-        
-        CategoryResponse category = categoryService.getCategoryById(id);
-        return ResponseEntity.ok(category);
     }
 }

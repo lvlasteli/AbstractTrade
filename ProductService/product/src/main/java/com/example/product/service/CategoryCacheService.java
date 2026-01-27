@@ -2,8 +2,6 @@ package com.example.product.service;
 
 import com.example.product.constants.RedisConstants;
 import com.example.product.model.dto.response.CategoryResponse;
-
-import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,10 +28,14 @@ public class CategoryCacheService {
             return Optional.empty();
         }
 
-        String key = RedisConstants.CATEGORY_PREFIX + categoryId.toString();
-        var category = redisTemplate.opsForValue().get(key);
-
-        return Optional.ofNullable(category);
+        try {
+            String key = RedisConstants.CATEGORY_PREFIX + categoryId.toString();
+            CategoryResponse category = redisTemplate.opsForValue().get(key);
+            return Optional.ofNullable(category);
+        } catch (Exception e) {
+            log.warn("Failed to retrieve category from cache for id {}: {}", categoryId, e.getMessage());
+            return Optional.empty();
+        }
     }
     
     public void cacheCategory(UUID categoryId, CategoryResponse category) {

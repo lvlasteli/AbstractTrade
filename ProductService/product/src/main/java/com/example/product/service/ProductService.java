@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,11 +39,20 @@ public class ProductService {
         return buildPageResponse(productPage);
     }
 
-    public Optional<PageResponse<ProductResponse>> searchProducts(String query, int page, int size) {
+    public PageResponse<ProductResponse> searchProducts(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(
             query, query, pageable
-        ).map(this::buildPageResponse);
+        ).map(this::buildPageResponse)
+        .orElse(PageResponse.<ProductResponse>builder()
+            .content(List.of())
+            .page(page)
+            .size(size)
+            .totalElements(0)
+            .totalPages(0)
+            .hasNext(false)
+            .hasPrevious(false)
+            .build());
     }
     
     public Optional<PageResponse<ProductResponse>> getProductsByCategoryId(UUID categoryId, int page, int size) {

@@ -8,6 +8,9 @@ import com.example.product.repository.CategoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,24 +30,52 @@ public class CategoryService {
     private final CategoryCacheService categoryCacheService;
     
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAllByOrderByNameAsc().stream()
-            .map(this::mapToCategoryResponse)
+        return categoryRepository.findAllWithProductCountOrdered().stream()
+            .map(result -> {
+                Category category = (Category) result[0];
+                Long productCount = ((Number) result[1]).longValue();
+                CategoryResponse response = mapToCategoryResponse(category);
+                response.setProductCount(productCount);
+                return response;
+            })
             .collect(Collectors.toList());
     }
     
-    public List<CategoryResponse> getAllCategoriesUnordered() {
-        return categoryRepository.findAll().stream()
-            .map(this::mapToCategoryResponse)
-            .collect(Collectors.toList());
+    public PageResponse<CategoryResponse> getAllCategoriesPaginated(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Object[]> categoryPage = categoryRepository.findAllWithProductCountOrdered(pageable);
+        
+        return PageResponse.<CategoryResponse>builder()
+            .content(categoryPage.getContent().stream()
+                .map(result -> {
+                    Category category = (Category) result[0];
+                    Long productCount = ((Number) result[1]).longValue();
+                    CategoryResponse response = mapToCategoryResponse(category);
+                    response.setProductCount(productCount);
+                    return response;
+                })
+                .collect(Collectors.toList()))
+            .page(categoryPage.getNumber())
+            .size(categoryPage.getSize())
+            .totalElements(categoryPage.getTotalElements())
+            .totalPages(categoryPage.getTotalPages())
+            .hasNext(categoryPage.hasNext())
+            .hasPrevious(categoryPage.hasPrevious())
+            .build();
     }
+
     
-    public CategoryResponse getCategoryById(UUID id) {
-        Optional<CategoryResponse> cachedCategoryOpt = categoryCacheService.getCachedCategory(id);
+    public CategoryResponse getCategoryBySlug(String slug) {
+        Category category = categoryRepository.findBySlug(slug)
+            .orElseThrow(() -> new EntityNotFoundException("Category not found with slug: " + slug));
+        
+        UUID categoryId = category.getId();
+        Optional<CategoryResponse> cachedCategoryOpt = categoryCacheService.getCachedCategory(categoryId);
         
         if (cachedCategoryOpt.isPresent()) {
             CategoryResponse cachedCategory = cachedCategoryOpt.get();
-            log.debug("Category {} found in cache", id);
-            Optional<PageResponse<ProductResponse>> productsOpt = productService.getProductsByCategoryId(id, 0, 20);
+            log.debug("Category {} found in cache", categoryId);
+            Optional<PageResponse<ProductResponse>> productsOpt = productService.getProductsByCategoryId(categoryId, 0, 20);
             if (productsOpt.isPresent()) {
                 cachedCategory.setProductCount(productsOpt.get().getTotalElements());
             } else {
@@ -53,19 +84,16 @@ public class CategoryService {
             return cachedCategory;
         }
         
-        Category category = categoryRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Category not found with id: " + id));
-        
         CategoryResponse categoryResponse = mapToCategoryResponse(category);
         
-        Optional<PageResponse<ProductResponse>> productsOpt = productService.getProductsByCategoryId(id, 0, 20);
+        Optional<PageResponse<ProductResponse>> productsOpt = productService.getProductsByCategoryId(categoryId, 0, 20);
         if (productsOpt.isPresent()) {
             categoryResponse.setProductCount(productsOpt.get().getTotalElements());
         } else {
             categoryResponse.setProductCount(0L);
         }
         
-        categoryCacheService.cacheCategory(id, categoryResponse);
+        categoryCacheService.cacheCategory(categoryId, categoryResponse);
         
         return categoryResponse;
     }
