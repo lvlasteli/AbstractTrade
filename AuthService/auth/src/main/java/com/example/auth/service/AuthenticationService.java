@@ -3,6 +3,7 @@ package com.example.auth.service;
 import com.example.auth.constants.ErrorMsg;
 import com.example.auth.event.AuthEventPublisher;
 import com.example.shared.events.schema.AccountLockedEvent;
+import com.example.shared.events.schema.AuthenticationFailedEvent;
 import com.example.shared.events.schema.UserLoggedInEvent;
 import com.example.shared.events.schema.UserLoggedOutEvent;
 import com.example.auth.exception.AccountLockedException;
@@ -119,6 +120,15 @@ public class AuthenticationService {
         User user = userService.findByEmailOrUsernameWithRoles(request.getIdentifier())
                 .orElseThrow(() -> {
                     auditService.logLoginFailed(null, metadata, ErrorMsg.USER_NOT_FOUND);
+                    eventPublisher.publish(AuthenticationFailedEvent.create(
+                            null,
+                            request.getIdentifier(),
+                            ErrorMsg.USER_NOT_FOUND,
+                            metadata.ipAddress(),
+                            metadata.userAgent(),
+                            metadata.deviceInfo(),
+                            0L
+                    ));
                     return new InvalidCredentialsException(ErrorMsg.INVALID_CREDENTIALS);
                 });
 
@@ -153,6 +163,16 @@ public class AuthenticationService {
         long attempts = rateLimitManager.recordFailedLoginByUser(user.getId());
 
         auditService.logLoginFailed(user.getId(), metadata, ErrorMsg.INVALID_CREDENTIALS);
+
+        eventPublisher.publish(AuthenticationFailedEvent.create(
+                user.getId(),
+                user.getEmail(),
+                ErrorMsg.INVALID_CREDENTIALS,
+                metadata.ipAddress(),
+                metadata.userAgent(),
+                metadata.deviceInfo(),
+                attempts
+        ));
 
         if (lockoutManager.shouldLockAccount(attempts)) {
             handleAccountLockout(user, metadata);

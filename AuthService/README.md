@@ -229,6 +229,29 @@ Rate limiting is implemented using a **defense-in-depth** strategy across Gatewa
 * **CSRF Protection**: Token validation for state-changing operations
 * **CORS**: Whitelist allowed origins (configured via environment)
 
+### Gateway Access Control
+
+AuthService endpoints are restricted to only accept requests from GatewayService using a combination of header validation and IP whitelist:
+
+* **Header Validation**: All requests must include `X-Gateway-Request` header with the value from `GATEWAY_SERVICE_SECRET` environment variable
+* **IP Whitelist**: Requests must originate from allowed IP addresses or ranges
+
+**IP Whitelist Configuration**:
+
+The whitelist supports both local development and Docker environments:
+
+* **Local Development**: `127.0.0.1`, `localhost` (for services running directly on host machine)
+* **Docker Environment**: `gateway-service` (container name), `172.18.0.0/16` (Docker network subnet)
+
+Default configuration includes all of the above for seamless operation in both scenarios:
+```properties
+auth.security.gateway.allowed-ips=${GATEWAY_ALLOWED_IPS:gateway-service,127.0.0.1,localhost,172.18.0.0/16}
+```
+
+The whitelist can be customized via `GATEWAY_ALLOWED_IPS` environment variable if needed. Both header validation AND IP validation must pass for access to be granted.
+
+> **Note**: See [GatewayService/README.md](../GatewayService/README.md#internal-service-authentication) for detailed configuration and usage.
+
 When running AuthService locally (outside Docker), it connects to dockerized Kafka and Redis services using `localhost` with exposed ports. The configuration defaults to `localhost:29092` for Kafka and `localhost:6381` for Redis, which can be overridden via environment variables for Docker deployment.
 
 ## Database Schema Reference

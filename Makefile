@@ -1,3 +1,5 @@
+SHELL := bash
+
 .PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild init-cassandra wait-for-health kafka-topics kafka-topics-delete cassandra-reset-node2 cassandra-replace-node2
 
 # Helper function to wait for a single container to be healthy
@@ -138,7 +140,8 @@ shared-up:
 	@echo "Creating Kafka topics..."
 	@make kafka-topics
 	@echo "All shared services started successfully!"
-	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
+	@echo "Initialize the postgres auth database"
+	@make init-postgres-auth-db
 
 shared-down:
 	@echo "Stopping shared services..."

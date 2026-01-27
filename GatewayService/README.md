@@ -38,7 +38,9 @@ To ensure high availability, security, and performance, the Gateway Service impl
 
 3. **Rate Limiting & Throttling**
     - Protects backend services from overload.
-    - Limits per-user, per-IP, or per-endpoint request rates.
+    - **IP-based rate limiting** for authentication endpoints (login, registration) as first line of defense.
+    - Per-user and per-endpoint rate limiting for authenticated requests.
+    - AuthService handles **user-based rate limiting** that requires user identification (see [AuthService/README.md](../AuthService/README.md)).
 
 4. **Caching & Response Aggregation**
     - Caches frequently requested public data to reduce load on downstream services.
@@ -49,9 +51,17 @@ To ensure high availability, security, and performance, the Gateway Service impl
     - Grafana in turn will be able to have alerts on abnormal request patterns, latency spikes, or failures.
 
 6. **Session Types Managed by Gateway**
-    - Anonymous Session (Gateway-owned) is created when incoming request has no anonymous cookie (cart ownership `cart_anonymous` tables in Cassandra)
-    - for authenticated Session (AuthService-owned) reads cookie, validate session against Redis and build security context
-    - Gateway never creates or mutates authenticated sessions.
+   - Anonymous Session (Gateway-owned) is created when incoming request has no anonymous cookie (cart ownership `cart_anonymous` tables in Cassandra)
+   - for authenticated Session (AuthService-owned) reads cookie, validate session against Redis and build security context
+   - Gateway never creates or mutates authenticated sessions.
+
+7. **Internal Service Authentication**
+   - All requests to AuthService must include `X-Gateway-Request` header with value from `GATEWAY_SERVICE_SECRET` environment variable
+   - AuthService validates both header value and source IP address (whitelist includes `gateway-service`, `127.0.0.1`, `localhost`, `172.18.0.0/16`)
+   - Supports both local development and Docker environments
+   - Spring Cloud OpenFeign automatically adds the header via `AuthServiceFeignConfig` interceptor
+   - IP whitelist configurable via `GATEWAY_ALLOWED_IPS` environment variable
+   - Both services must use the same `GATEWAY_SERVICE_SECRET` value
 
 
 ## Infrastructure Recommendations
@@ -80,9 +90,17 @@ To maximize **availability, scalability, and security**, the Gateway Service sho
 
 ## Protection Layers
 1. Gateway Rate Limiting (Redis-based):
-   - Anonymous users: 10 cart operations per minute per IP
-   - Authenticated users: 100 cart operations per minute per user
-   - Global anonymous limit cart creates per second
+   - **Auth Endpoints (IP-based)**:
+     - Login: 10 failed attempts per 15 minutes per IP → temporary IP block (1 hour)
+     - Registration: 5 registrations per IP per hour
+     - Session refresh: 10 requests per session per minute
+   - **Cart Operations**:
+     - Anonymous users: 10 cart operations per minute per IP
+     - Authenticated users: 100 cart operations per minute per user
+     - Global anonymous limit cart creates per second
+   - **Other Endpoints**: See [ENDPOINTS.md](./ENDPOINTS.md) for complete rate limiting rules
+
+> **Note**: Gateway handles IP-based rate limiting for auth endpoints. AuthService handles user-based rate limiting (per-user login attempts, password reset) that requires user identification. See [AuthService/README.md](../AuthService/README.md) for details.
 
 2. Device Fingerprinting:
    - Generate fingerprint from: IP + User-Agent + Accept-Language + Screen Resolution

@@ -15,9 +15,6 @@ public class CookieConfig {
 
     private int maxAgeSeconds = 86400; //24 hours
 
-    /**
-     * Whether the cookie should only be sent over HTTPS.
-     */
     private boolean secure = true;
 
     private String sameSite = "Lax";

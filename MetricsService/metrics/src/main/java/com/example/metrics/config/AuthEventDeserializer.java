@@ -3,12 +3,13 @@ package com.example.metrics.config;
 import com.example.shared.events.constants.KafkaConstants;
 import com.example.shared.events.schema.AccountLockedEvent;
 import com.example.shared.events.schema.AuthEvent;
+import com.example.shared.events.schema.AuthenticationFailedEvent;
 import com.example.shared.events.schema.UserLoggedInEvent;
 import com.example.shared.events.schema.UserLoggedOutEvent;
 import com.example.shared.events.schema.UserRegisteredEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
-import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class AuthEventDeserializer implements Deserializer<AuthEvent> {
 
     private static final Pattern EVENT_TYPE_PATTERN = Pattern.compile("\"eventType\"\\s*:\\s*\"([^\"]+)\"");
     
-    private final Map<String, JacksonJsonDeserializer<? extends AuthEvent>> deserializers;
+    private final Map<String, JsonDeserializer<? extends AuthEvent>> deserializers;
 
     public AuthEventDeserializer() {
         this.deserializers = new HashMap<>();
@@ -29,10 +30,11 @@ public class AuthEventDeserializer implements Deserializer<AuthEvent> {
         deserializers.put(KafkaConstants.USER_LOGGED_OUT, createDeserializer(UserLoggedOutEvent.class));
         deserializers.put(KafkaConstants.USER_REGISTERED, createDeserializer(UserRegisteredEvent.class));
         deserializers.put(KafkaConstants.ACCOUNT_LOCKED, createDeserializer(AccountLockedEvent.class));
+        deserializers.put(KafkaConstants.AUTHENTICATION_FAILED, createDeserializer(AuthenticationFailedEvent.class));
     }
     
-    private <T extends AuthEvent> JacksonJsonDeserializer<T> createDeserializer(Class<T> eventClass) {
-        JacksonJsonDeserializer<T> deserializer = new JacksonJsonDeserializer<>(eventClass);
+    private <T extends AuthEvent> JsonDeserializer<T> createDeserializer(Class<T> eventClass) {
+        JsonDeserializer<T> deserializer = new JsonDeserializer<>(eventClass);
         deserializer.addTrustedPackages("*");
         deserializer.setUseTypeHeaders(false);
         return deserializer;
@@ -58,7 +60,7 @@ public class AuthEventDeserializer implements Deserializer<AuthEvent> {
                 return tryDeserializeWithAllTypes(topic, data);
             }
 
-            JacksonJsonDeserializer<? extends AuthEvent> deserializer = deserializers.get(eventType);
+            JsonDeserializer<? extends AuthEvent> deserializer = deserializers.get(eventType);
             if (deserializer == null) {
                 log.warn("Unknown event type: {}. Attempting to deserialize with all known types.", eventType);
                 return tryDeserializeWithAllTypes(topic, data);
@@ -83,7 +85,7 @@ public class AuthEventDeserializer implements Deserializer<AuthEvent> {
     }
 
     private AuthEvent tryDeserializeWithAllTypes(String topic, byte[] data) {
-        for (Map.Entry<String, JacksonJsonDeserializer<? extends AuthEvent>> entry : deserializers.entrySet()) {
+        for (Map.Entry<String, JsonDeserializer<? extends AuthEvent>> entry : deserializers.entrySet()) {
             try {
                 AuthEvent event = entry.getValue().deserialize(topic, null, data);
                 if (event != null) {
@@ -99,6 +101,6 @@ public class AuthEventDeserializer implements Deserializer<AuthEvent> {
 
     @Override
     public void close() {
-        deserializers.values().forEach(JacksonJsonDeserializer::close);
+        deserializers.values().forEach(JsonDeserializer::close);
     }
 }
