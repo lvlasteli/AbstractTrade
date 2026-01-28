@@ -63,11 +63,11 @@ public class GlobalExceptionHandler {
                 "Cache service temporarily unavailable, but service is still operational");
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
-        log.error("Unexpected exception: {}", ex.getMessage(), ex);
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMsg.INTERNAL_SERVER_ERROR,
-                ErrorMsg.UNEXPECTED_ERROR);
+    @ExceptionHandler(GatewayAccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleGatewayAccessDenied(GatewayAccessDeniedException ex) {
+        log.warn("Gateway access denied: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ErrorMsg.GATEWAY_ACCESS_DENIED,
+                ErrorMsg.GATEWAY_ACCESS_DENIED_MESSAGE);
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String error, String message) {
@@ -79,5 +79,12 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(status).body(response);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        log.error("Unexpected exception: {}", ex.getMessage(), ex);
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ErrorMsg.INTERNAL_SERVER_ERROR,
+                ErrorMsg.UNEXPECTED_ERROR);
     }
 }

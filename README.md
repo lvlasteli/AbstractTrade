@@ -16,6 +16,7 @@ Each microservice has its own detailed README with architecture, API endpoints, 
 - **[NotificationService](NotificationService/README.md)** - Email, SMS, and push notification delivery
 - **[AnalyticsService](AnalyticsService/README.md)** - Business analytics, reporting, and insights
 - **[ListenerService](ListenerService/README.md)** - Third-party webhook handling and event processing
+- **[ProductService](ProductService/README.md)** - manages the product catalog and category information and checks stock and reserves quantities for auth users
 
 # High-Level Architecture
 
