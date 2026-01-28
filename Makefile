@@ -93,7 +93,7 @@ help:
 	@echo "  make shared-up - Start all infrastructure services (PostgresSQL, Redis, Cassandra, Kafka)"
 	@echo "  make shared-down - Stop all infrastructure services"
 	@echo "  make init-cassandra - Initialize Cassandra keyspace and tables"
-	# @echo "  make init-postgres-product-db - Initialize postgres product database"
+	@echo "  make init-postgres-product-db - Initialize postgres product database"
 	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
 	# @echo "  make init-postgres-order-db - Initialize postgres order database"
 	# @echo "  make init-postgres-payment-db - Initialize postgres payment database"
@@ -142,6 +142,9 @@ shared-up:
 	@echo "All shared services started successfully!"
 	@echo "Initialize the postgres auth database"
 	@make init-postgres-auth-db
+	@make init-postgres-product-db
+	@echo "Postgres dbs are initialized successfully!"
+
 
 shared-down:
 	@echo "Stopping shared services..."
@@ -158,6 +161,12 @@ init-postgres-auth-db:
 	@echo "Initializing postgres auth database..."
 	docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/init-postgres-auth-db.sql
 	@echo "Postgres auth database initialized successfully!"
+
+
+init-postgres-product-db:
+	@echo "Initialize the postgres product database"
+	docker exec -i postgres-product psql -U product_user -d product_db < scripts/init-postgres-product-db.sql
+	@echo "Postgres product database initialized successfully!"
 
 drop-postgres-auth-db:
 	@echo "Dropping postgres auth database..."

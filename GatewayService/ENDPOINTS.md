@@ -240,7 +240,7 @@ Supports both **anonymous** and **authenticated** users. Gateway manages anonymo
 | `/products/{id}` | GET | No | - | Get product details |
 | `/products/search` | GET | No | - | Search products |
 | `/products/categories` | GET | No | - | List categories |
-| `/products/categories/{id}` | GET | No | - | Get category with products |
+| `/products/categories/{slug}` | GET | No | - | Get category with products |
 | `/products` | POST | Yes | MERCHANT | Create product |
 | `/products/{id}` | PUT | Yes | MERCHANT | Update product |
 | `/products/{id}` | DELETE | Yes | MERCHANT | Delete product |

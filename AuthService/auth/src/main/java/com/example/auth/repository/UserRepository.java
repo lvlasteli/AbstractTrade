@@ -15,8 +15,6 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
-    Optional<User> findByUsername(String username);
-
     @Query("SELECT u FROM User u WHERE u.email = :identifier OR u.username = :identifier")
     Optional<User> findByEmailOrUsername(@Param("identifier") String identifier);
 
@@ -31,10 +29,6 @@ public interface UserRepository extends CrudRepository<User, UUID> {
 
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.id = :id")
     Optional<User> findByIdWithRolesAndPermissions(@Param("id") UUID id);
-
-    boolean existsByEmail(String email);
-
-    boolean existsByUsername(String username);
 
     @Query("SELECT u FROM User u WHERE u.email = :email OR u.username = :username")
     List<User> findAllByEmailOrUsername(@Param("email") String email, @Param("username") String username);
