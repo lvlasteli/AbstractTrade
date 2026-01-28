@@ -9,12 +9,10 @@ volumes:
   postgres-order-data:
   postgres-payment-data:
   postgres-notification-data:
-  cassandra-node1-data:
-  cassandra-node2-data:
-  cassandra-node3-data:
   redis-catalog-data:
   redis-rate-limit-data:
   redis-session-data:
+  redis-cart-data:
   kafka-data:
   kafka-metadata:
 
@@ -171,6 +169,23 @@ services:
       retries: 5
     restart: unless-stopped
 
+  redis-cart:
+    image: redis:7-alpine
+    container_name: redis-cart
+    command: redis-server --requirepass ${REDIS_CART_PASSWORD:-cart_password} --maxmemory 512mb --maxmemory-policy volatile-ttl --appendonly no --save ""
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis-cart-data:/data
+    networks:
+      - abstracttrade-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
@@ -205,90 +220,6 @@ services:
       timeout: 10s
       retries: 10
       start_period: 30s
-    restart: unless-stopped
-  
-  cassandra-node1:
-    image: cassandra:4.1
-    container_name: cassandra-node1
-    environment:
-      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
-      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
-      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC1}
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-      CASSANDRA_SEEDS: cassandra-node1,cassandra-node2,cassandra-node3
-      HEAP_NEWSIZE: 128M
-      MAX_HEAP_SIZE: 512M
-    volumes:
-      - cassandra-node1-data:/var/lib/cassandra
-    ports:
-      - "9042:9042"
-      - "7000:7000"
-    networks:
-      - abstracttrade-network
-    healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-    restart: unless-stopped
-
-  cassandra-node2:
-    image: cassandra:4.1
-    container_name: cassandra-node2
-    environment:
-      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
-      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
-      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC2}
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-      CASSANDRA_SEEDS: cassandra-node1,cassandra-node2,cassandra-node3
-      HEAP_NEWSIZE: 128M
-      MAX_HEAP_SIZE: 512M
-    volumes:
-      - cassandra-node2-data:/var/lib/cassandra
-    ports:
-      - "9043:9042"
-      - "7001:7000"
-    networks:
-      - abstracttrade-network
-    depends_on:
-      cassandra-node1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
-    restart: unless-stopped
-
-  cassandra-node3:
-    image: cassandra:4.1
-    container_name: cassandra-node3
-    environment:
-      CASSANDRA_CLUSTER_NAME: ${CASSANDRA_CLUSTER_NAME:-CartCluster}
-      CASSANDRA_DC: ${CASSANDRA_DC:-DC1}
-      CASSANDRA_RACK: ${CASSANDRA_RACK:-RAC3}
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-      CASSANDRA_SEEDS: cassandra-node1,cassandra-node2,cassandra-node3
-      HEAP_NEWSIZE: 128M
-      MAX_HEAP_SIZE: 512M
-    volumes:
-      - cassandra-node3-data:/var/lib/cassandra
-    ports:
-      - "9044:9042"
-      - "7002:7000"
-    networks:
-      - abstracttrade-network
-    depends_on:
-      cassandra-node1:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "cqlsh -e 'describe cluster'"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
     restart: unless-stopped
 
   prometheus:

@@ -1,6 +1,6 @@
 SHELL := bash
 
-.PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild init-cassandra wait-for-health kafka-topics kafka-topics-delete cassandra-reset-node2 cassandra-replace-node2
+.PHONY: help shared-up shared-down services-up all-down up down restart logs clean rebuild wait-for-health kafka-topics kafka-topics-delete
 
 # Helper function to wait for a single container to be healthy
 # Usage: $(call wait-for-container,container-name,max-wait-seconds)
@@ -35,64 +35,12 @@ define wait-for-container
 	fi
 endef
 
-# Special function for Cassandra nodes - more lenient during cluster formation
-# Allows nodes to be in "starting" or "restarting" state and gives more time for cluster joining
-# Usage: $(call wait-for-cassandra-node,container-name,max-wait-seconds)
-define wait-for-cassandra-node
-	@echo "Waiting for $(1) to join cluster (this may take a while)..."; \
-	timeout=$(2); \
-	unhealthy_count=0; \
-	max_unhealthy_checks=10; \
-	restarting_count=0; \
-	max_restarting_checks=20; \
-	while [ $$timeout -gt 0 ]; do \
-		state=$$(docker inspect --format='{{.State.Status}}' $(1) 2>/dev/null || echo "not-found"); \
-		if [ "$$state" = "not-found" ]; then \
-			echo "ERROR: $(1) container not found!"; \
-			exit 1; \
-		elif [ "$$state" = "restarting" ]; then \
-			restarting_count=$$((restarting_count + 1)); \
-			if [ $$restarting_count -gt $$max_restarting_checks ]; then \
-				echo "ERROR: $(1) has been restarting for too long. Check logs: docker logs $(1)"; \
-				exit 1; \
-			fi; \
-			echo "$(1) is restarting (check $$restarting_count/$$max_restarting_checks)..."; \
-		elif [ "$$state" = "exited" ] || [ "$$state" = "dead" ]; then \
-			echo "ERROR: $(1) has stopped (status: $$state). Check logs: docker logs $(1)"; \
-			exit 1; \
-		elif [ "$$state" = "running" ]; then \
-			restarting_count=0; \
-			health_status=$$(docker inspect --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' $(1) 2>/dev/null || echo "no-healthcheck"); \
-			if [ "$$health_status" = "healthy" ]; then \
-				echo "$(1) is healthy and joined the cluster!"; \
-				break; \
-			elif [ "$$health_status" = "unhealthy" ]; then \
-				unhealthy_count=$$((unhealthy_count + 1)); \
-				if [ $$unhealthy_count -gt $$max_unhealthy_checks ]; then \
-					echo "ERROR: $(1) has been unhealthy for too long. Check logs: docker logs $(1)"; \
-					exit 1; \
-				fi; \
-				echo "$(1) is still joining cluster (unhealthy check $$unhealthy_count/$$max_unhealthy_checks)..."; \
-			elif [ "$$health_status" = "starting" ]; then \
-				echo "$(1) is starting up..."; \
-			fi; \
-		fi; \
-		sleep 3; \
-		timeout=$$((timeout - 3)); \
-	done; \
-	if [ $$timeout -le 0 ]; then \
-		echo "ERROR: Timeout waiting for $(1) to join cluster. Check logs: docker logs $(1)"; \
-		exit 1; \
-	fi
-endef
-
 help:
 	@echo "AbstractTrade - Docker Management Commands"
 	@echo ""
 	@echo "Infrastructure Commands:"
-	@echo "  make shared-up - Start all infrastructure services (PostgresSQL, Redis, Cassandra, Kafka)"
+	@echo "  make shared-up - Start all infrastructure services (PostgresSQL, Redis, Kafka)"
 	@echo "  make shared-down - Stop all infrastructure services"
-	@echo "  make init-cassandra - Initialize Cassandra keyspace and tables"
 	@echo "  make init-postgres-product-db - Initialize postgres product database"
 	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
 	# @echo "  make init-postgres-order-db - Initialize postgres order database"
@@ -132,11 +80,8 @@ shared-up:
 	@$(call wait-for-container,redis-catalog,120)
 	@$(call wait-for-container,redis-rate-limit,120)
 	@$(call wait-for-container,redis-session,120)
+	@$(call wait-for-container,redis-cart,120)
 	@$(call wait-for-container,kafka,120)
-	@$(call wait-for-container,cassandra-node1,500)
-	@echo "Waiting for Cassandra cluster nodes to be ready..."
-	@$(call wait-for-cassandra-node,cassandra-node2,500)
-	@$(call wait-for-cassandra-node,cassandra-node3,500)
 	@echo "Creating Kafka topics..."
 	@make kafka-topics
 	@echo "All shared services started successfully!"
@@ -150,12 +95,6 @@ shared-down:
 	@echo "Stopping shared services..."
 	docker-compose -f docker-compose.shared.yml down
 
-init-cassandra:
-	@echo "Waiting for Cassandra cluster to be ready..."
-	@$(call wait-for-container,cassandra-node1,180)
-	@echo "Creating Cassandra keyspace and tables..."
-	docker exec -i cassandra-node1 cqlsh < scripts/init-cassandra.cql
-	@echo "Cassandra initialization complete!"
 
 init-postgres-auth-db:
 	@echo "Initializing postgres auth database..."
@@ -204,7 +143,6 @@ all-down:
 
 up: shared-up
 	@echo "Infrastructure is healthy, proceeding with initialization..."
-	@make init-cassandra
 	@make services-up
 	@echo ""
 	@echo "All services are up and running!"
