@@ -1,9 +1,9 @@
 package com.example.gateway.service;
 
+import com.example.gateway.config.RateLimitProperties;
 import com.example.gateway.constants.RedisConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -16,43 +16,43 @@ import java.time.Duration;
 public class IpRateLimitService {
 
     private final RedisTemplate<String, String> stringRedisTemplate;
-
-    @Value("${gateway.rate-limit.login.ip.max-attempts:10}")
-    private int loginIpMaxAttempts;
-
-    @Value("${gateway.rate-limit.login.ip.window-minutes:15}")
-    private int loginIpWindowMinutes;
-
-    @Value("${gateway.rate-limit.register.ip.max-attempts:5}")
-    private int registerIpMaxAttempts;
-
-    @Value("${gateway.rate-limit.register.ip.window-minutes:60}")
-    private int registerIpWindowMinutes;
+    private final RateLimitProperties rateLimitProperties;
 
 
     public long recordFailedLoginByIp(String ipAddress) {
         String key = RedisConstants.RATE_LOGIN_IP_PREFIX + ipAddress;
-        return incrementWithExpiry(key, Duration.ofMinutes(loginIpWindowMinutes));
+        return incrementWithExpiry(key, Duration.ofMinutes(rateLimitProperties.getLogin().getIp().getWindowMinutes()));
     }
 
 
     public boolean isIpRateLimited(String ipAddress) {
         String key = RedisConstants.RATE_LOGIN_IP_PREFIX + ipAddress;
         long attempts = getAttemptCount(key);
-        return attempts >= loginIpMaxAttempts;
+        return attempts >= rateLimitProperties.getLogin().getIp().getMaxAttempts();
     }
 
 
     public void recordRegistrationByIp(String ipAddress) {
         String key = RedisConstants.RATE_REGISTER_IP_PREFIX + ipAddress;
-        incrementWithExpiry(key, Duration.ofMinutes(registerIpWindowMinutes));
+        incrementWithExpiry(key, Duration.ofMinutes(rateLimitProperties.getRegister().getIp().getWindowMinutes()));
     }
 
 
     public boolean isRegistrationRateLimited(String ipAddress) {
         String key = RedisConstants.RATE_REGISTER_IP_PREFIX + ipAddress;
         long attempts = getAttemptCount(key);
-        return attempts >= registerIpMaxAttempts;
+        return attempts >= rateLimitProperties.getRegister().getIp().getMaxAttempts();
+    }
+
+    public void recordCartCreation(String ipAddress) {
+        String key = RedisConstants.RATE_CART_CREATION_IP_PREFIX + ipAddress;
+        incrementWithExpiry(key, Duration.ofHours(rateLimitProperties.getCartCreation().getIp().getWindowHours()));
+    }
+
+    public boolean isCartCreationRateLimited(String ipAddress) {
+        String key = RedisConstants.RATE_CART_CREATION_IP_PREFIX + ipAddress;
+        long attempts = getAttemptCount(key);
+        return attempts >= rateLimitProperties.getCartCreation().getIp().getMaxAttempts();
     }
 
 

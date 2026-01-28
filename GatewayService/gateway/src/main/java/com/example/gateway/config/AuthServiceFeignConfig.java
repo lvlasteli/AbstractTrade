@@ -1,5 +1,6 @@
 package com.example.gateway.config;
 
+import com.example.gateway.client.ServiceErrorDecoder;
 import feign.RequestInterceptor;
 import feign.codec.ErrorDecoder;
 import io.micrometer.common.util.StringUtils;
@@ -30,6 +31,6 @@ public class AuthServiceFeignConfig {
     
     @Bean
     public ErrorDecoder feignErrorDecoder() {
-        return new com.example.gateway.client.AuthServiceErrorDecoder();
+        return new ServiceErrorDecoder();
     }
 }

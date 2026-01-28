@@ -4,6 +4,7 @@ import com.example.auth.model.dto.response.AnonCartResponse;
 import com.example.auth.model.dto.response.SuccessResponse;
 import com.example.auth.security.AnonCartCookieManager;
 import com.example.auth.service.AnonCartService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -43,6 +44,27 @@ public class AnonCartController {
         log.debug("Generated anonymous cart ID: {}", cartId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<SuccessResponse<Void>> refreshAnonCartCookie(HttpServletRequest request) {
+        ResponseCookie refreshedCookie = anonCartCookieManager.refreshAnonCartCookie(request);
+        
+        if (refreshedCookie == null) {
+            SuccessResponse<Void> response = SuccessResponse.<Void>builder()
+                    .message("Anonymous cart cookie not found")
+                    .build();
+            return ResponseEntity.ok().body(response);
+        }
+
+        SuccessResponse<Void> response = SuccessResponse.<Void>builder()
+                .message("Anonymous cart cookie refreshed successfully")
+                .build();
+
+        log.debug("Refreshed anonymous cart cookie");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshedCookie.toString())
                 .body(response);
     }
 }

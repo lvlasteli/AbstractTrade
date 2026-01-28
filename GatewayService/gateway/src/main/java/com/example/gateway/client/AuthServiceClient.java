@@ -14,7 +14,7 @@ public interface AuthServiceClient {
     
     @GetMapping(value = "{path}")
     ResponseEntity<Object> forwardGetRequest(@PathVariable String path);
-    
+
     @PostMapping(value = "{path}")
     ResponseEntity<Object> forwardPostRequest(@PathVariable String path, @RequestBody(required = false) Object body);
     

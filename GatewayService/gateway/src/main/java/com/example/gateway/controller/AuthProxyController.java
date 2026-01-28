@@ -1,6 +1,7 @@
 package com.example.gateway.controller;
 
 import com.example.gateway.client.AuthServiceClient;
+import com.example.gateway.util.ErrorBuilderUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
@@ -29,11 +30,11 @@ public class AuthProxyController {
     public ResponseEntity<?> proxyRequest(
             @RequestBody(required = false) Map<String, Object> body,
             HttpServletRequest request) {
-        
+        String serviceName = " AuthService";
         try {
             String path = request.getRequestURI();
             String method = request.getMethod();
-            log.debug("Proxying {} {} {} to AuthService", method, path);
+            log.debug("Proxying {} {} to {}", method, path,serviceName);
             
             return switch (method) {
                 case "GET" -> authServiceClient.forwardGetRequest(path);
@@ -45,39 +46,8 @@ public class AuthProxyController {
             };
             
         } catch (FeignException e) {
-            log.error("Error forwarding to AuthService: {} - Status: {}", e.getMessage(), e.status());
-            return buildErrorResponse(e);
+            log.error("Error forwarding to {}: {} - Status: {}", serviceName, e.getMessage(), e.status());
+            return ErrorBuilderUtil.buildErrorResponse(objectMapper, serviceName, e);
         }
-    }
-    
-    private ResponseEntity<?> buildErrorResponse(FeignException e) {
-        String responseBody = e.contentUTF8();
-        
-        if (responseBody != null && !responseBody.isEmpty()) {
-            try {
-                Map<String, Object> parsedResponse = objectMapper.readValue(
-                    responseBody, 
-                    new TypeReference<Map<String, Object>>() {}
-                );
-                return ResponseEntity.status(e.status()).body(parsedResponse);
-            } catch (Exception ex) {
-                log.warn("Failed to parse Auth Service error response, returning as string: {}", ex.getMessage());
-            }
-        }
-        
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("timestamp", new Date());
-        
-        try {
-            errorResponse.put("status", e.status());
-            HttpStatus httpStatus = HttpStatus.valueOf(e.status());
-            errorResponse.put("error", httpStatus.getReasonPhrase());
-        } catch (IllegalArgumentException ex) {
-            errorResponse.put("error", "Error");
-        }
-        
-        errorResponse.put("message", responseBody != null ? responseBody : e.getMessage());
-        
-        return ResponseEntity.status(e.status()).body(errorResponse);
     }
 }
