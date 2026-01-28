@@ -41,6 +41,12 @@ docker network create abstracttrade-network
 make up
 ```
 
+**Option A: Using Make - Only shared (Recommended)**
+For local development of java applications, build only shared infrastructure
+```bash
+make shared-up
+```
+
 **Option B: Manual Commands (Windows PowerShell/Cmd)**
 ```bash
 # Start shared services
@@ -48,9 +54,6 @@ docker-compose -f docker-compose.shared.yml  up -d
 
 # Check if shared services are up and running
 docker-compose -f docker-compose.shared.yml ps
-
-# Initialize Cassandra
-docker exec -it cassandra-node1 cqlsh -e "CREATE KEYSPACE IF NOT EXISTS cart_keyspace WITH replication = {'class': 'NetworkTopologyStrategy', 'DC1': 3};"
 
 # Start microservices
 docker-compose -f docker-compose.services.yml up -d
@@ -62,12 +65,6 @@ docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/init-postgre
 
 # Or from within the container
 docker exec -it postgres-auth psql -U auth_user -d auth_db -f /scripts/init-postgres-auth-db.sql
-
-# Execute cassandra CQL script
-docker exec -i cassandra-node1 cqlsh < scripts/init-cassandra.cql
-
-# Or interactively
-docker exec -it cassandra-node1 cqlsh -f /scripts/init-cassandra.cql
 ```
 
 **Option C: Manual Commands (Linux/Mac)**
@@ -78,26 +75,15 @@ docker-compose -f docker-compose.shared.yml  up -d
 # Check if shared services are up and running
 docker-compose -f docker-compose.shared.yml ps
 
-# Initialize Cassandra (or use: make init-cassandra)
-docker exec -it cassandra-node1 cqlsh -e "CREATE KEYSPACE IF NOT EXISTS cart_keyspace WITH replication = {'class': 'NetworkTopologyStrategy', 'DC1': 3};"
-
 # Start microservices
 docker-compose -f docker-compose.services.yml up -d
 # Check if microservices are up and running
 docker-compose -f docker-compose.services.yml ps
 
-# Create postgres auth database
+# Create postgres databases
 docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/init-postgres-auth-db.sql
+docker exec -i postgres-product psql -U product_user -d product_db < scripts/init-postgres-product-db.sql
 
-# Or from within the container
-docker exec -it postgres-auth psql -U auth_user -d auth_db -f /scripts/init-postgres-auth-db.sql
-
-# Execute cassandra CQL script
-docker exec -i cassandra-node1 cqlsh < scripts/init-cassandra.cql
-
-# Or interactively
-docker exec -it cassandra-node1 cqlsh -f /scripts/init-cassandra.cql
-```
 
 Expected output: All services should show status "Up" and "healthy"
 ### 6. Access Services

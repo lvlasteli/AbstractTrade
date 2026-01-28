@@ -40,7 +40,7 @@ Kafka is used as the event/message bus in this architecture, which decouples ser
 
 - **Java 21**
 - **Kafka**: Used for event-driven communication between microservices.
-- **Cassandra**: Used for cart functionality beacause it offers fast read-write operations and better availability & has cloud Compatibility.
+- **Redis**: Used for cart functionality with atomic operations, sliding TTL, and high-performance read-write operations. Supports both anonymous and authenticated user carts.
 - **Spring Boot 4.0.1**: A framework for building microservices. Java’s extensive ecosystem, paired with Spring tools like Spring Security, Spring Data, and Spring Cloud, supports large-scale systems.
 - **PostgreSQL**: Used for transactional data such as orders, payments, and user data.
 - **Redis**: Caches data to speed up responses, such as caching user sessions or product details.
@@ -60,7 +60,7 @@ Kafka is used as the event/message bus in this architecture, which decouples ser
 
 ## 4. Database arhitecture
 ## Overview
-This plan establishes a hybrid database architecture with dedicated PostgreSQL databases for critical services (Auth, Payment), shared databases for less critical services, Cassandra for cart management, and Redis for caching.
+This plan establishes a hybrid database architecture with dedicated PostgreSQL databases for critical services (Auth, Payment), shared databases for less critical services, Redis for cart management and caching.
 
 ### PostgreSQL Dedicated Databases Strategy
 Primary Database Instances
@@ -102,23 +102,28 @@ Services: Notification Service
 Replication: Primary **async physical streaming replication**
 Justification: Non-critical, can tolerate slight delays
 
-### Cassandra Database Strategy for Cart
-Cluster Configuration
-3 -node Cassandra Cluster (Multi-Datacenter)
-Keyspace: cart_keyspace
-Replication Strategy: NetworkTopologyStrategy with 3 replicas (all nodes have all data)
+### Redis Cart Database Strategy
+Redis Instance: `redis-cart` (Port 6382)
+Configuration: `maxmemory-policy volatile-ttl`, `appendonly no`, `save ""`
 
-User Separation:
-1. cart_authenticated - Logged-in users
-   - Tables: user_carts, cart_items, saved_for_later
-   - TTL: 90 days for abandoned carts
-   - No rate limiting at DB level (handled by Gateway)
+Keyspace Structure:
+1. **Authenticated User Carts**
+   - `user_carts:{userId}` - Cart metadata (HASH)
+   - `user_cart_items:{userId}` - Cart items (HASH: sku:{skuId} -> quantity)
+   - TTL: None or 90 days (configurable)
+   - Optimistic locking with version field
 
-2. cart_anonymous - Anonymous users
-   - Tables: anonymous_carts, anonymous_cart_items
-   - TTL: 30 days
-   - Row-level TTL on each cart item
-   - Partition by session_id with additional fingerprint validation
+2. **Anonymous User Carts**
+   - `anon_carts:{cartId}` - Cart metadata (HASH)
+   - `anon_cart_items:{cartId}` - Cart items (HASH: sku:{skuId} -> quantity)
+   - TTL: 24-72 hours (sliding, refreshed on writes only)
+   - Cookie-based identification via `anon_cart_id`
+
+Features:
+- Atomic operations via Lua scripts
+- Optimistic locking prevents concurrent modification conflicts
+- Sliding TTL for anonymous carts (refreshed on writes, not reads)
+- Max 100 items per cart, max 999 quantity per SKU
 
 ### Redis Caching Strategy
 Application checks cache first, then DB. Updates cache after DB write and Kafka events trigger cache updates
@@ -142,4 +147,10 @@ Application checks cache first, then DB. Updates cache after DB write and Kafka 
    - Active user sessions
    - Token blacklist (for logout)
    - TTL: Session duration (e.g., 24 hours)
+
+4. redis_cart - Cart storage
+   - User carts and anonymous carts
+   - Atomic cart operations
+   - Sliding TTL for anonymous carts
+   - TTL: 24-72 hours for anonymous, 90 days or none for authenticated
 
