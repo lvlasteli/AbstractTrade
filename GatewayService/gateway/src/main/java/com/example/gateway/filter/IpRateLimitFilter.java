@@ -36,9 +36,10 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
         this.ipRateLimitService = ipRateLimitService;
         this.resolver = resolver;
     }
-
+    private static final String CART_PATH_PREFIX = "/cart";
     private static final String LOGIN_PATH = "/auth/login";
     private static final String REGISTER_PATH = "/auth/register";
+    private static final String ANON_CART_GENERATE_PATH = "/auth/anonymous-cart/generate";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -47,7 +48,8 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
         String requestPath = request.getRequestURI();
         String method = request.getMethod();
 
-        if (!"POST".equals(method) || (!requestPath.equals(LOGIN_PATH) && !requestPath.equals(REGISTER_PATH))) {
+        if (!"POST".equals(method) || (!requestPath.equals(LOGIN_PATH) && !requestPath.equals(REGISTER_PATH)
+                && !requestPath.equals(CART_PATH_PREFIX) && !requestPath.equals(ANON_CART_GENERATE_PATH))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -61,8 +63,7 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
             }
 
             if (requestPath.equals(LOGIN_PATH)) {
-                handleLoginRequest(ipAddress, request, response, filterChain);
-                return;
+                handleLoginRequest(ipAddress, request);
             }
             else {
                 handleRegisterRequest(ipAddress);
@@ -76,8 +77,7 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
     }
 
 
-    private void handleLoginRequest(String ipAddress, HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    private void handleLoginRequest(String ipAddress, HttpServletRequest request) {
         if (ipRateLimitService.isIpRateLimited(ipAddress)) {
             long attempts = ipRateLimitService.recordFailedLoginByIp(ipAddress);
             ipBlockingService.blockIp(ipAddress, "Login rate limit exceeded", attempts, request.getHeader("User-Agent"));
@@ -85,40 +85,7 @@ public class IpRateLimitFilter extends OncePerRequestFilter {
             throw new RateLimitExceededException(ErrorMsg.TOO_MANY_LOGIN_ATTEMPTS_FROM_IP);
         }
 
-        HttpServletResponseWrapper responseWrapper = new HttpServletResponseWrapper(response) {
-            @Override
-            public void setStatus(int sc) {
-                super.setStatus(sc);
-                handleLoginResponse(ipAddress, sc, request);
-            }
-
-            @Override
-            public void sendError(int sc) throws IOException {
-                super.sendError(sc);
-                handleLoginResponse(ipAddress, sc, request);
-            }
-
-            @Override
-            public void sendError(int sc, String msg) throws IOException {
-                super.sendError(sc, msg);
-                handleLoginResponse(ipAddress, sc, request);
-            }
-        };
-
-        filterChain.doFilter(request, responseWrapper);
-    }
-
-
-    private void handleLoginResponse(String ipAddress, int statusCode, HttpServletRequest request) {
-        if (statusCode == HttpStatus.UNAUTHORIZED.value() || statusCode == HttpStatus.FORBIDDEN.value()) {
-            long attempts = ipRateLimitService.recordFailedLoginByIp(ipAddress);
-            log.debug("Recorded failed login attempt for IP: {}, total attempts: {}", ipAddress, attempts);
-
-            if (ipRateLimitService.isIpRateLimited(ipAddress)) {
-                ipBlockingService.blockIp(ipAddress, "Failed login attempts exceeded", attempts, request.getHeader("User-Agent"));
-                log.warn("IP blocked after recording failed login attempt: {}", ipAddress);
-            }
-        }
+        ipRateLimitService.recordFailedLoginByIp(ipAddress);
     }
 
     private void handleRegisterRequest(String ipAddress) {

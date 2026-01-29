@@ -5,13 +5,13 @@ import feign.codec.ErrorDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AuthServiceErrorDecoder implements ErrorDecoder {
+public class ServiceErrorDecoder implements ErrorDecoder {
     
     private final ErrorDecoder defaultErrorDecoder = new Default();
     
     @Override
     public Exception decode(String methodKey, Response response) {
-        log.debug("AuthService returned error status: {} for method: {}", response.status(), methodKey);
+        log.debug("Service returned error status: {} for method: {}", response.status(), methodKey);
         return defaultErrorDecoder.decode(methodKey, response);
     }
 }

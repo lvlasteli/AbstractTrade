@@ -161,3 +161,58 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Risk', 'Classic strategy board game of world domination', 32.99, 'GAME-008', 170, 'https://example.com/images/products/risk.jpg', '550e8400-e29b-41d4-a716-446655440010'),
 ('Uno', 'Classic Uno card game', 8.99, 'GAME-009', 500, 'https://example.com/images/products/uno.jpg', '550e8400-e29b-41d4-a716-446655440010'),
 ('Jenga', 'Classic Jenga tower stacking game', 14.99, 'GAME-010', 350, 'https://example.com/images/products/jenga.jpg', '550e8400-e29b-41d4-a716-446655440010');
+
+-- Additional products with special states (inactive/out of stock)
+
+-- Electronics: 1 inactive item
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('VR Headset Gen 1', 'First generation VR headset - Discontinued model', 149.99, 'ELEC-011', 75, 'https://example.com/images/products/vr-old.jpg', '550e8400-e29b-41d4-a716-446655440001', FALSE);
+
+-- Books: 2 inactive books
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('Encyclopedia Set 2010', 'Complete encyclopedia set from 2010 - Out of print', 99.99, 'BOOK-011', 20, 'https://example.com/images/products/encyclopedia.jpg', '550e8400-e29b-41d4-a716-446655440002', FALSE),
+('Dictionary 1st Edition', 'First edition dictionary - Collector''s item only', 45.99, 'BOOK-012', 15, 'https://example.com/images/products/dictionary-old.jpg', '550e8400-e29b-41d4-a716-446655440002', FALSE);
+
+-- Anime: 3 inactive items
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('Bleach Figure Series 1', 'Original Bleach figure - No longer in production', 39.99, 'ANIME-011', 25, 'https://example.com/images/products/bleach-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE),
+('Yu-Gi-Oh! Card Pack 2005', 'Vintage Yu-Gi-Oh card pack - Discontinued', 19.99, 'ANIME-012', 30, 'https://example.com/images/products/yugioh-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE),
+('Pokemon Poster Gen 1', 'Original Generation 1 Pokemon poster - Out of print', 24.99, 'ANIME-013', 18, 'https://example.com/images/products/pokemon-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE);
+
+-- Toys: 4 inactive items
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('Tamagotchi Original', 'Original Tamagotchi virtual pet - Vintage model', 29.99, 'TOY-011', 12, 'https://example.com/images/products/tamagotchi-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
+('Beyblade First Series', 'First series Beyblade - No longer manufactured', 34.99, 'TOY-012', 22, 'https://example.com/images/products/beyblade-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
+('Hot Wheels Track Set 2010', 'Vintage Hot Wheels track set - Discontinued', 44.99, 'TOY-013', 15, 'https://example.com/images/products/hotwheels-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
+('Action Figure Vintage', 'Classic action figure from 2008 - Out of production', 19.99, 'TOY-014', 28, 'https://example.com/images/products/action-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE);
+
+-- Beauty: 1 product not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
+('Limited Edition Perfume', 'Exclusive limited edition perfume - Currently unavailable', 79.99, 'BEAU-011', 0, 'https://example.com/images/products/perfume-limited.jpg', '550e8400-e29b-41d4-a716-446655440005');
+
+-- Automotive: 2 products not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
+('Premium Car Wax', 'Professional grade car wax - Restocking soon', 24.99, 'AUTO-011', 0, 'https://example.com/images/products/carwax.jpg', '550e8400-e29b-41d4-a716-446655440006'),
+('LED Headlight Kit', 'High-performance LED headlight conversion kit - Out of stock', 129.99, 'AUTO-012', 0, 'https://example.com/images/products/led-headlight.jpg', '550e8400-e29b-41d4-a716-446655440006');
+
+-- Food & Beverages: 3 products not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
+('Artisan Bread Mix', 'Premium artisan bread mix - Temporarily unavailable', 13.99, 'FOOD-011', 0, 'https://example.com/images/products/bread-mix.jpg', '550e8400-e29b-41d4-a716-446655440007'),
+('Imported Tea Collection', 'Rare imported tea collection - Awaiting restock', 34.99, 'FOOD-012', 0, 'https://example.com/images/products/tea-collection.jpg', '550e8400-e29b-41d4-a716-446655440007'),
+('Gourmet Spice Set', 'Premium gourmet spice collection - Out of stock', 29.99, 'FOOD-013', 0, 'https://example.com/images/products/spice-set.jpg', '550e8400-e29b-41d4-a716-446655440007');
+
+-- Health: 4 products not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
+('Probiotic Supplements', 'Advanced probiotic supplements - Restocking soon', 27.99, 'HEAL-011', 0, 'https://example.com/images/products/probiotic.jpg', '550e8400-e29b-41d4-a716-446655440008'),
+('Premium Yoga Block Set', 'High-density yoga block set - Currently unavailable', 19.99, 'HEAL-012', 0, 'https://example.com/images/products/yoga-blocks.jpg', '550e8400-e29b-41d4-a716-446655440008'),
+('Acupressure Mat', 'Therapeutic acupressure mat - Out of stock', 44.99, 'HEAL-013', 0, 'https://example.com/images/products/acupressure.jpg', '550e8400-e29b-41d4-a716-446655440008'),
+('Collagen Peptides', 'Hydrolyzed collagen peptides powder - Temporarily unavailable', 34.99, 'HEAL-014', 0, 'https://example.com/images/products/collagen.jpg', '550e8400-e29b-41d4-a716-446655440008');
+
+-- Clothing: 1 product inactive AND not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('Vintage Leather Jacket', 'Vintage leather jacket 2015 model - Discontinued and sold out', 199.99, 'CLOT-011', 0, 'https://example.com/images/products/leather-vintage.jpg', '550e8400-e29b-41d4-a716-446655440009', FALSE);
+
+-- Board Games: 2 products inactive AND not in stock
+INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
+('Axis & Allies 1st Edition', 'First edition Axis & Allies - Out of print and unavailable', 89.99, 'GAME-011', 0, 'https://example.com/images/products/axis-allies-old.jpg', '550e8400-e29b-41d4-a716-446655440010', FALSE),
+('Dungeons & Dragons Basic Set', 'Original D&D basic set - Collector''s item, no stock', 149.99, 'GAME-012', 0, 'https://example.com/images/products/dnd-basic.jpg', '550e8400-e29b-41d4-a716-446655440010', FALSE);

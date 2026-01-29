@@ -70,7 +70,7 @@ Client ──► Gateway ──► Auth Service ──► PostgreSQL (auth_db)
               ├──► Product Service ──► PostgreSQL (product_db)
               │                    └──► Redis (cache)
               │
-              └──► Cart Service ──► Cassandra (cart_keyspace)
+              └──► Cart Service ──► Redis (redis-cart)
                                 └──► Redis (rate_limit)
 ```
 
@@ -129,7 +129,7 @@ Product Service ──► Kafka Topic: "order.processed"
 | `order_db` (PostgreSQL) | API Service, Analytics Service | Orders, order history, analytics | 5434 |
 | `payment_db` (PostgreSQL) | Payment Service | Transactions, invoices, tax data | 5435 |
 | `notification_db` (PostgreSQL) | Notification Service | Notification queue, history, templates | 5436 |
-| `cart_keyspace` (Cassandra) | Cart Service | User carts, anonymous carts (with TTL) | / |
+| `redis-cart` (Redis) | Cart Service | User carts, anon carts (with sliding TTL) | 6382 |
 
 ## Redis Instance Allocation
 
@@ -138,18 +138,22 @@ Product Service ──► Kafka Topic: "order.processed"
 | `redis-cache` :6379 | Product catalog, API responses | allkeys-lru | 512MB |
 | `redis-ratelimit` :6380 | Rate limiting, DDoS protection, Device fingerprinting | volatile-ttl | 256MB |
 | `redis-session` :6381 | User sessions, token blacklist | volatile-lru | 512MB |
+| `redis-cart` :6382 | Cart storage (user & anonymous carts) | volatile-ttl | 512MB |
 
-## Cassandra Cluster Strategy
+## Redis Cart Strategy
 
-- **3-Node Cluster**: Full replication across all nodes
-- **Replication Factor**: 3 (all nodes have all data)
-- **Consistency Level**: QUORUM (2 of 3 nodes must respond)
-- **Keyspace**: `cart_keyspace`
-- **Tables**:
-  - `user_carts` - Authenticated user carts (90-day TTL)
-  - `cart_items` - Cart item details
-  - `anon_carts` - Guest user carts (30-day TTL)
-  - `anon_cart_items` - Guest cart items (30-day TTL)
+- **Instance**: `redis-cart` (Port 6382)
+- **Configuration**: `maxmemory-policy volatile-ttl`, `appendonly no`, `save ""`
+- **Keyspace Structure**:
+  - `user_carts:{userId}` - Authenticated cart metadata (HASH)
+  - `user_cart_items:{userId}` - Authenticated cart items (HASH)
+  - `anon_carts:{cartId}` - Anonymous cart metadata (HASH, sliding TTL 24-72h)
+  - `anon_cart_items:{cartId}` - Anonymous cart items (HASH, sliding TTL 24-72h)
+- **Features**:
+  - Atomic operations via Lua scripts
+  - Optimistic locking with version field
+  - Sliding TTL refreshed on writes only (anonymous carts)
+  - Max 100 items per cart, max 999 quantity per SKU
 
 ## Port Mapping Reference
 
@@ -164,6 +168,7 @@ Product Service ──► Kafka Topic: "order.processed"
 - Logistics: 8087
 - Analytics: 8088
 - Listener: 8089
+- Metrics: 8090
 
 ### Databases
 - PostgreSQL (Auth): 5432
@@ -202,16 +207,9 @@ Product Service ──► Kafka Topic: "order.processed"
    └─► Kafka (KRaft mode)
 
 3. Dependent Infrastructure
-   └─► Cassandra Node 1
+   └─► Redis Cart Instance
 
-4. Cassandra Cluster Formation
-   ├─► Cassandra Node 2 (depends on: Node 1)
-   └─► Cassandra Node 3 (depends on: Node 1)
-
-5. Cassandra Initialization
-   └─► Create keyspace and tables
-
-6. Monitoring Stack
+4. Monitoring Stack
    ├─► Prometheus
    └─► Grafana (depends on: Prometheus)
 
@@ -219,7 +217,7 @@ Product Service ──► Kafka Topic: "order.processed"
    ├─► Auth Service (depends on: postgres-auth, redis-session, kafka)
    ├─► API Service (depends on: postgres-auth, postgres-order, redis-cache, kafka)
    ├─► Product Service (depends on: postgres-product, redis-cache, kafka)
-   ├─► Cart Service (depends on: cassandra-*, redis-ratelimit, kafka)
+   ├─► Cart Service (depends on: redis-cart, redis-ratelimit, kafka)
    ├─► Payment Service (depends on: postgres-payment, kafka)
    ├─► Notification Service (depends on: postgres-notification, kafka)
    ├─► Logistics Service (depends on: postgres-product, kafka)
@@ -235,7 +233,7 @@ All services implement health checks:
 ### Infrastructure Services
 - **PostgreSQL**: `pg_isready` check every 10s
 - **Redis**: Connection test every 10s
-- **Cassandra**: CQL query test every 30s (60s startup period)
+- **Redis Cart**: Connection test every 10s
 - **Kafka**: Broker API version check every 10s (30s startup period)
 
 ### Microservices
@@ -264,7 +262,6 @@ Development (Docker Compose) → Production (Kubernetes/AKS):
 | Microservices | Docker Containers | AKS Pods |
 | PostgreSQL | Docker Containers | Azure Database for PostgreSQL |
 | Redis | Docker Containers | Azure Cache for Redis |
-| Cassandra | Docker Containers | Azure Cosmos DB (Cassandra API) |
 | Kafka | Docker Container | Azure Event Hubs |
 | Monitoring | Prometheus + Grafana | Azure Monitor + Prometheus |
 | Secrets | .env file | Azure Key Vault |

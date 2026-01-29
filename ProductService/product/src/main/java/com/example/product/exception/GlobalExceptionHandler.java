@@ -70,6 +70,18 @@ public class GlobalExceptionHandler {
                 ErrorMsg.GATEWAY_ACCESS_DENIED_MESSAGE);
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex) {
+        log.warn("Product not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Product Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductNotAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotAvailable(ProductNotAvailableException ex) {
+        log.warn("Product not available: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Product Not Available", ex.getMessage());
+    }
+
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String error, String message) {
         ErrorResponse response = ErrorResponse.builder()
                 .timestamp(Instant.now())

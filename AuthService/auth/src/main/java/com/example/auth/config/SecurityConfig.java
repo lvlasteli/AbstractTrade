@@ -36,6 +36,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/session/current").permitAll()
                         .requestMatchers("/auth/refresh").permitAll()
                         .requestMatchers("/auth/logout").permitAll()
+                        .requestMatchers("/auth/anon-cart/generate").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                 );
 

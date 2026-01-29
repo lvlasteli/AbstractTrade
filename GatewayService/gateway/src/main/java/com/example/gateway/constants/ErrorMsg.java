@@ -13,5 +13,6 @@ public final class ErrorMsg {
     public static final String TOO_MANY_REGISTRATION_ATTEMPTS = "Too many registration attempts. Please try again later.";
     public static final String IP_TEMPORARILY_BLOCKED = "IP temporarily blocked. Try again later.";
     public static final String TOO_MANY_LOGIN_ATTEMPTS_FROM_IP = "Too many login attempts from this IP. Please try again later.";
+    public static final String TOO_MANY_CART_CREATION_ATTEMPTS = "Too many cart creation attempts. Please try again later.";
     public static final String UNEXPECTED_ERROR = "An unexpected error occurred. Please try again later.";
 }

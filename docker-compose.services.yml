@@ -130,11 +130,10 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8084
-      # Cassandra
-      SPRING_DATA_CASSANDRA_CONTACT_POINTS: cassandra-node1,cassandra-node2,cassandra-node3
-      SPRING_DATA_CASSANDRA_PORT: 9042
-      SPRING_DATA_CASSANDRA_KEYSPACE_NAME: cart_keyspace
-      SPRING_DATA_CASSANDRA_LOCAL_DATACENTER: ${CASSANDRA_DC:-DC1}
+      # Redis Cart
+      REDIS_CART_HOST: redis-cart
+      REDIS_CART_PORT: 6379
+      REDIS_CART_PASSWORD: ${REDIS_CART_PASSWORD:-cart_password}
       # Redis Rate Limit
       REDIS_RATELIMIT_HOST: redis-ratelimit
       REDIS_RATELIMIT_PORT: 6379
@@ -144,6 +143,9 @@ services:
       - "8084:8084"
     networks:
       - abstracttrade-network
+    depends_on:
+      redis-cart:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
