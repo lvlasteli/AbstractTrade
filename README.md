@@ -11,6 +11,7 @@
 Each microservice has its own detailed README with architecture, API endpoints, configuration, and usage instructions:
 
 - **[AuthService](AuthService/README.md)** - User authentication, authorization, and session management
+- **[CartService](CartService/README.md)** - High-performance cart management using Redis with atomic operations for both anonymous and authenticated users
 - **[GatewayService](GatewayService/README.md)** - API Gateway, request routing, rate limiting, and IP blocking
 - **[MetricsService](MetricsService/README.md)** - Metrics collection, aggregation, and monitoring
 - **[NotificationService](NotificationService/README.md)** - Email, SMS, and push notification delivery
@@ -153,4 +154,27 @@ Application checks cache first, then DB. Updates cache after DB write and Kafka 
    - Atomic cart operations
    - Sliding TTL for anonymous carts
    - TTL: 24-72 hours for anonymous, 90 days or none for authenticated
+
+## Summary
+
+**AbstractTrade** is a modern, scalable e-commerce microservices platform built with Java 21 and Spring Boot, designed to handle high-traffic workloads with robust security, performance, and observability.
+
+### Key Architectural Highlights
+
+* **Event-Driven Architecture**: Kafka-based messaging enables asynchronous communication, service decoupling, and independent scaling
+* **Hybrid Database Strategy**: PostgreSQL for transactional data with dedicated databases per service, Redis for high-performance cart operations and caching
+* **Secure Authentication**: Session-based authentication with HttpOnly cookies, Redis-backed sessions, and Gateway-enforced authorization
+* **High-Performance Cart**: Redis-backed cart service with atomic Lua scripts, optimistic locking, and sliding TTL supporting both anonymous and authenticated users
+* **Gateway-Centric Security**: Centralized request routing, rate limiting, IP-based protection, and authentication validation at the Gateway layer
+* **Monitoring & Observability**: Comprehensive metrics collection with Prometheus and Grafana for real-time performance tracking and alerting
+
+### Design Principles
+
+* **Separation of Concerns**: Each service has a single, well-defined responsibility
+* **Defense in Depth**: Multi-layered security with Gateway IP-based protection and service-level authentication
+* **Performance First**: Redis caching, read replicas, CDN integration, and optimized query patterns
+* **Scalability**: Stateless services, horizontal scaling, asynchronous processing via Kafka
+* **Observability**: Comprehensive logging, metrics collection, and real-time alerting for all critical operations
+
+This architecture ensures the platform remains **secure, performant, and maintainable** while supporting the evolving needs of a modern e-commerce business.
 
