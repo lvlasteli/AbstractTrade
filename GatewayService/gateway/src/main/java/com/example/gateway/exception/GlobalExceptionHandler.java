@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
-
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
@@ -24,6 +23,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException ex) {
         log.warn("Rate limit exceeded: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ErrorMsg.RATE_LIMIT_EXCEEDED, ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex) {
+        log.warn("Product not found: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.NOT_FOUND, "Product Not Found", ex.getMessage());
+    }
+
+    @ExceptionHandler(ProductNotAvailableException.class)
+    public ResponseEntity<ErrorResponse> handleProductNotAvailable(ProductNotAvailableException ex) {
+        log.warn("Product not available: {}", ex.getMessage());
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Product Not Available", ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -39,6 +38,17 @@ public class ProductController {
     public ResponseEntity<ProductResponse> getProductById(@PathVariable UUID id) {
         ProductResponse product = productService.getProductById(id)
             .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
+        return ResponseEntity.ok(product);
+    }
+    
+    @GetMapping("/sku/{sku}")
+    public ResponseEntity<ProductResponse> getProductBySku(
+            @PathVariable String sku,
+            @RequestParam(required = false) Integer quantity) {
+        
+        log.debug("Get product by SKU: sku={}, quantity={}", sku, quantity);
+        
+        ProductResponse product = productService.getProductBySkuWithValidation(sku, quantity);
         return ResponseEntity.ok(product);
     }
     

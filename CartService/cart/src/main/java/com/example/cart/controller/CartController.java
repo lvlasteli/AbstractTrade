@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +34,10 @@ public class CartController {
     public ResponseEntity<CartResponse> addItem(
             @Valid @RequestBody AddItemRequest request,
             HttpServletRequest httpRequest) {
+        
+        log.info("Cart service received request: sku={}, quantity={}, quantityType={}", 
+            request.getSku(), request.getQuantity(), 
+            request.getQuantity() != null ? request.getQuantity().getClass().getName() : "null");
         
         String cartId = extractCartId(httpRequest);
         String userId = extractUserId(httpRequest);
@@ -114,12 +117,12 @@ public class CartController {
     }
 
     private String extractCartId(HttpServletRequest request) {
-        return cookieExtractor.extractAnonCartId(request)
+        return cookieExtractor.extractCartId(request)
                 .orElse(null);
     }
 
     private String extractUserId(HttpServletRequest request) {
-        return cookieExtractor.ex(request)
+        return cookieExtractor.extractUserId(request)
                 .orElse(null);
     }
 }

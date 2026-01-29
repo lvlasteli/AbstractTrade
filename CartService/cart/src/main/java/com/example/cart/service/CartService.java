@@ -10,14 +10,14 @@ import com.example.cart.model.dto.AddItemRequest;
 import com.example.cart.model.dto.CartContext;
 import com.example.cart.model.dto.CartResponse;
 import com.example.cart.repository.RedisCartRepository;
+
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -51,12 +51,24 @@ public class CartService {
                 "eu-west-1"
         );
 
+        log.info("Executing Lua script - keys: {}, args: {}", keys, args);
+        log.info("Quantity value: {}, type: {}, toString: '{}'", 
+            request.getQuantity(), 
+            request.getQuantity().getClass().getName(),
+            String.valueOf(request.getQuantity()));
+
         try {
             Integer newVersion = luaScriptService.executeAddItem(keys, args);
             log.debug("Added item {} to cart {}, new version: {}", request.getSku(), ctx.identifier(), newVersion);
         } catch (RuntimeException e) {
             if (e.getMessage().contains("MAX_QUANTITY_EXCEEDED")) {
                 throw new CartValidationException("Quantity exceeds maximum allowed (" + properties.getMaxQuantityPerSku() + ")");
+            }
+            if (e.getMessage().contains("INVALID_QUANTITY")) {
+                throw new CartValidationException("Invalid quantity provided");
+            }
+            if (e.getMessage().contains("INVALID_CURRENT_QUANTITY")) {
+                throw new CartValidationException("Invalid current quantity in cart");
             }
             throw e;
         }
@@ -139,6 +151,9 @@ public class CartService {
             }
             if (e.getMessage().contains("MAX_QUANTITY_EXCEEDED")) {
                 throw new CartValidationException("Quantity exceeds maximum allowed (" + properties.getMaxQuantityPerSku() + ")");
+            }
+            if (e.getMessage().contains("INVALID_QUANTITY")) {
+                throw new CartValidationException("Invalid quantity provided");
             }
             throw e;
         }

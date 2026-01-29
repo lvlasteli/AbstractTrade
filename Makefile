@@ -43,6 +43,8 @@ help:
 	@echo "  make shared-down - Stop all infrastructure services"
 	@echo "  make init-postgres-product-db - Initialize postgres product database"
 	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
+	@echo "  make drop-postgres-product-db - Drop postgres product database"
+	@echo "  make drop-postgres-auth-db - Drop postgres auth database"
 	# @echo "  make init-postgres-order-db - Initialize postgres order database"
 	# @echo "  make init-postgres-payment-db - Initialize postgres payment database"
 	# @echo "  make init-postgres-notification-db - Initialize postgres notification database"
@@ -111,6 +113,11 @@ drop-postgres-auth-db:
 	@echo "Dropping postgres auth database..."
 	docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/drop-postgres-auth-db.sql
 	@echo "Postgres auth database dropped successfully!"
+
+drop-postgres-product-db:
+	@echo "Dropping postgres product database..."
+	docker exec -i postgres-product psql -U product_user -d product_db < scripts/drop-postgres-product-db.sql
+	@echo "Postgres product database dropped successfully!"
 
 kafka-topics:
 	@echo "Waiting for Kafka to be ready..."

@@ -11,7 +11,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ public class CartIdentityService {
     public static final String ATTR_CART_IDENTITY = "gateway.cart.identity";
     public static final String ATTR_USER_ID = "gateway.cart.userId";
 
-    private static final String AUTH_SESSION_CURRENT_PATH = "/auth/session/current";
     private static final String ANON_CART_GENERATE_PATH = "/auth/anon-cart/generate";
 
     private final AuthServiceClient authServiceClient;
@@ -41,16 +39,24 @@ public class CartIdentityService {
             return cached;
         }
 
-        boolean hasAuthSession = hasCookie(request, cookieConfig.getAuthSession().getName());
+       boolean hasAuthSession = hasCookie(request, cookieConfig.getAuthSession().getName());
         boolean hasAnonCart = hasCookie(request, cookieConfig.getAnonCart().getName());
 
         CartIdentity identity;
         if (hasAuthSession) {
-            identity = resolveAuthenticatedIdentity();
-        } else if (!hasAnonCart) {
+            String userId = getCookieValue(request, cookieConfig.getAuthSession().getName());
+            identity = CartIdentity.builder()
+                    .userId(userId)
+                    .build();
+            log.debug("Resolved existing users cart: cartId={}", userId);
+        }else if (!hasAnonCart) {
             identity = resolveOrCreateAnonymousIdentity();
         } else {
-            identity = CartIdentity.builder().build();
+            String cartId = getCookieValue(request, cookieConfig.getAnonCart().getName());
+            identity = CartIdentity.builder()
+                    .cartId(cartId)
+                    .build();
+            log.debug("Resolved existing anonymous cart: cartId={}", cartId);
         }
 
         cache(identity);
@@ -59,21 +65,6 @@ public class CartIdentityService {
                     .setAttribute(ATTR_USER_ID, identity.getUserId(), RequestAttributes.SCOPE_REQUEST);
         }
         return identity;
-    }
-
-    private CartIdentity resolveAuthenticatedIdentity() {
-        try {
-            ResponseEntity<Object> authResponse = authServiceClient.forwardGetRequest(AUTH_SESSION_CURRENT_PATH);
-            String userId = extractNestedString(authResponse.getBody(), "data", "userId");
-            return CartIdentity.builder().userId(userId).build();
-        } catch (FeignException e) {
-            log.debug("Failed to resolve authenticated user via {}: status={} msg={}",
-                    AUTH_SESSION_CURRENT_PATH, e.status(), e.getMessage());
-            return CartIdentity.builder().build();
-        } catch (Exception e) {
-            log.warn("Unexpected error resolving authenticated cart identity: {}", e.getMessage());
-            return CartIdentity.builder().build();
-        }
     }
 
     private CartIdentity resolveOrCreateAnonymousIdentity() {
@@ -108,6 +99,19 @@ public class CartIdentityService {
             }
         }
         return false;
+    }
+
+    private String getCookieValue(HttpServletRequest request, String cookieName) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null || StringUtils.isBlank(cookieName)) {
+            return null;
+        }
+        for (Cookie c : cookies) {
+            if (cookieName.equals(c.getName())) {
+                return c.getValue();
+            }
+        }
+        return null;
     }
 
     private String extractNestedString(Object body, String firstKey, String secondKey) {

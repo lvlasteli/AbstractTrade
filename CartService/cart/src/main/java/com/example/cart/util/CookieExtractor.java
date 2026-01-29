@@ -1,6 +1,8 @@
 package com.example.cart.util;
 
 import com.example.cart.config.CookieConfig;
+
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -14,23 +16,45 @@ import java.util.Optional;
 @Slf4j
 public class CookieExtractor {
 
-    private CookieConfig cookieConfig;
+    private final CookieConfig cookieConfig;
 
-    public Optional<String> extractAnonCartId(HttpServletRequest request) {
+    public CookieExtractor(CookieConfig cookieConfig) {
+        this.cookieConfig = cookieConfig;
+    }
+
+
+    public Optional<String> extractUserId(HttpServletRequest request) {
+        return extractFromHeader("X-User-Id", request)
+                .or(() -> extractCookie(request, cookieConfig.getAuthSessionCookieName()));
+    }
+
+    public Optional<String> extractCartId(HttpServletRequest request) {
+        return extractFromHeader("X-Cart-Id", request)
+                .or(() -> extractCookie(request, cookieConfig.getAnonCartCookieName()));
+    }
+
+    private Optional<String> extractFromHeader(String headerKey, HttpServletRequest request) {
+        String userId = request.getHeader(headerKey);
+        return Optional.ofNullable(userId)
+                .filter(id -> !id.isBlank());
+    }
+
+    private Optional<String> extractCookie(HttpServletRequest request, String cookieName) {
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return Optional.empty();
         }
 
         return Arrays.stream(cookies)
-                .filter(cookie -> cookieConfig.getAnonCartCookieName().equals(cookie.getName()))
+                .filter(c -> cookieName.equals(c.getName()))
                 .map(Cookie::getValue)
                 .filter(value -> value != null && !value.isBlank())
                 .findFirst();
     }
 
+
     public Optional<String> extractAnonCartIdFromHeader(String cookieHeader) {
-        if (cookieHeader == null || cookieHeader.isBlank()) {
+        if (StringUtils.isBlank(cookieHeader)) {
             return Optional.empty();
         }
 

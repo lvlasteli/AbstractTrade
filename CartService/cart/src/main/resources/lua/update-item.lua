@@ -17,16 +17,24 @@ local ttl_seconds = tonumber(ARGV[4])
 local expected_version = tonumber(ARGV[5])
 local item_key = "sku:" .. sku
 
+if not new_quantity then
+    return {"err", "INVALID_QUANTITY"}
+end
+
+if new_quantity > 999 then
+    return {"err", "MAX_QUANTITY_EXCEEDED"}
+end
+
 local cart_exists = redis.call("EXISTS", cart_key)
 if cart_exists == 0 then
-    return {err = "CART_NOT_FOUND"}
+    return {"err", "CART_NOT_FOUND"}
 end
 
 if expected_version then
     local current_version_str = redis.call("HGET", cart_key, "version")
     local current_version = tonumber(current_version_str)
     if current_version ~= expected_version then
-        return {err = "VERSION_MISMATCH", current = current_version}
+        return {"err", "VERSION_MISMATCH", "current", current_version}
     end
 end
 
@@ -45,13 +53,10 @@ end
 if new_quantity <= 0 then
     redis.call("HDEL", items_key, item_key)
 else
-    if new_quantity > 999 then
-        return {err = "MAX_QUANTITY_EXCEEDED"}
-    end
     redis.call("HSET", items_key, item_key, tostring(new_quantity))
 end
 
 version = version + 1
 redis.call("HSET", cart_key, "version", tostring(version))
 
-return {ok = version}
+return {"ok", version}

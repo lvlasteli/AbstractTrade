@@ -19,6 +19,14 @@ local currency = ARGV[5] or "USD"
 local region = ARGV[6] or "us-east-1"
 local item_key = "sku:" .. sku
 
+if not quantity or quantity <= 0 then
+    return {"err", "INVALID_QUANTITY"}
+end
+
+if quantity > 999 then
+    return {"err", "MAX_QUANTITY_EXCEEDED"}
+end
+
 -- Check if cart exists
 local cart_exists = redis.call("EXISTS", cart_key)
 local version = 1
@@ -60,11 +68,15 @@ local current_quantity = redis.call("HGET", items_key, item_key)
 local new_quantity = quantity
 
 if current_quantity then
-    new_quantity = tonumber(current_quantity) + quantity
+    local current_qty = tonumber(current_quantity)
+    if not current_qty then
+        return {"err", "INVALID_CURRENT_QUANTITY"}
+    end
+    new_quantity = current_qty + quantity
 end
 
 if new_quantity > 999 then
-    return {err = "MAX_QUANTITY_EXCEEDED"}
+    return {"err", "MAX_QUANTITY_EXCEEDED"}
 end
 
 redis.call("HSET", items_key, item_key, tostring(new_quantity))
@@ -72,4 +84,4 @@ redis.call("HSET", items_key, item_key, tostring(new_quantity))
 version = version + 1
 redis.call("HSET", cart_key, "version", tostring(version))
 
-return {ok = version}
+return {"ok", version}

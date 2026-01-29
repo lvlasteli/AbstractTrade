@@ -1,6 +1,7 @@
 package com.example.gateway.config;
 
 import com.example.gateway.client.ServiceErrorDecoder;
+import com.example.gateway.model.CartIdentity;
 import com.example.gateway.service.CartIdentityService;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
@@ -48,6 +49,26 @@ public class CartServiceFeignConfig {
                 String value = String.valueOf(userId);
                 if (!value.isBlank()) {
                     template.header("X-User-Id", value);
+                }
+            }
+        };
+    }
+
+    @Bean
+    public RequestInterceptor cartIdInterceptor() {
+        return (RequestTemplate template) -> {
+            RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
+            if (attrs == null) return;
+            
+            Object identity = attrs.getAttribute(
+                CartIdentityService.ATTR_CART_IDENTITY, 
+                RequestAttributes.SCOPE_REQUEST
+            );
+            
+            if (identity instanceof CartIdentity cartIdentity) {
+                String cartId = cartIdentity.getCartId();
+                if (cartId != null && !cartId.isBlank()) {
+                    template.header("X-Cart-Id", cartId);
                 }
             }
         };

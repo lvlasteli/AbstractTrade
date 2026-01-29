@@ -1,5 +1,6 @@
 package com.example.cart.service;
 
+import com.example.cart.exception.CartValidationException;
 import com.example.cart.model.dto.CartContext;
 import com.example.cart.repository.RedisCartRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,10 @@ public class CartContextFactory {
     private final RedisCartRepository cartRepository;
 
     public CartContext create(String cartId, String userId) {
+        if (cartId == null && userId == null) {
+            throw new CartValidationException("Either cartId or userId must be provided");
+        }
+        
         boolean anonymous = userId == null;
         String identifier = anonymous ? cartId : userId;
 
