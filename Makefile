@@ -45,9 +45,10 @@ help:
 	@echo "  make init-postgres-auth-db - Initialize postgres auth database"
 	@echo "  make drop-postgres-product-db - Drop postgres product database"
 	@echo "  make drop-postgres-auth-db - Drop postgres auth database"
-	# @echo "  make init-postgres-order-db - Initialize postgres order database"
-	# @echo "  make init-postgres-payment-db - Initialize postgres payment database"
-	# @echo "  make init-postgres-notification-db - Initialize postgres notification database"
+	# TO_DO: @echo "  make init-postgres-order-db - Initialize postgres order database"
+	# TO_DO: @echo "  make init-postgres-payment-db - Initialize postgres payment database"
+	# TO_DO: @echo "  make init-postgres-notification-db - Initialize postgres notification database"
+	# TO_DO: @echo "  make init-postgres-notification-db - Initialize postgres notification database"
 	@echo "  make kafka-topics - Create Kafka topics (auth_notifications, auth_metrics)"
 	@echo "  make kafka-topics-delete - Delete Kafka topics (auth_notifications, auth_metrics)"
 	@echo ""
@@ -154,7 +155,7 @@ up: shared-up
 	@echo ""
 	@echo "All services are up and running!"
 	@echo "Gateway: http://localhost:8080"
-	@echo "Grafana: http://localhost:3000"
+	# @echo "Grafana: http://localhost:3000"
 
 down: all-down
 	@echo "All services stopped!"

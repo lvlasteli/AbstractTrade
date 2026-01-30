@@ -62,9 +62,11 @@ docker-compose -f docker-compose.services.yml ps
 
 # Create postgres auth database
 docker exec -i postgres-auth psql -U auth_user -d auth_db < scripts/init-postgres-auth-db.sql
+docker exec -i postgres-product psql -U product_user -d product_db < scripts/init-postgres-product-db.sql
 
 # Or from within the container
 docker exec -it postgres-auth psql -U auth_user -d auth_db -f /scripts/init-postgres-auth-db.sql
+docker exec -i postgres-product psql -U product_user -d product_db < scripts/init-postgres-product-db.sql
 ```
 
 **Option C: Manual Commands (Linux/Mac)**

@@ -3,13 +3,19 @@ FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
+# Copy and install shared-events module first
+COPY SharedEvents/shared-events/pom.xml /shared-events/pom.xml
+COPY SharedEvents/shared-events/src /shared-events/src
+RUN cd /shared-events && mvn clean install -DskipTests -B
+
+# Now copy service files
+COPY MetricsService/metrics/pom.xml .
+COPY MetricsService/metrics/mvnw .
+COPY MetricsService/metrics/.mvn .mvn
 
 RUN mvn dependency:go-offline -B
 
-COPY src ./src
+COPY MetricsService/metrics/src ./src
 
 RUN mvn clean package -DskipTests -B
 
