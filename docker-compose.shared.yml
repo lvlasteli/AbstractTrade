@@ -121,9 +121,9 @@ services:
   redis-catalog:
     image: redis:7-alpine
     container_name: redis-catalog
-    command: redis-server --requirepass ${REDIS_CATALOG_PASSWORD:-cache_password} --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server --requirepass ${REDIS_CATALOG_PASSWORD:-cache_password_change_me} --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"
+      - "${REDIS_CATALOG_PORT:-6379}:6379"
     volumes:
       - redis-catalog-data:/data
     networks:
@@ -138,9 +138,9 @@ services:
   redis-rate-limit:
     image: redis:7-alpine
     container_name: redis-rate-limit
-    command: redis-server --requirepass ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password} --maxmemory 256mb --maxmemory-policy volatile-ttl
+    command: redis-server --requirepass ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me} --maxmemory 256mb --maxmemory-policy volatile-ttl
     ports:
-      - "6380:6379"
+      - "${REDIS_RATELIMIT_PORT:-6380}:6379"
     volumes:
       - redis-rate-limit-data:/data
     networks:
@@ -155,9 +155,9 @@ services:
   redis-session:
     image: redis:7-alpine
     container_name: redis-session
-    command: redis-server --requirepass ${REDIS_SESSION_PASSWORD:-session_password} --maxmemory 512mb --maxmemory-policy volatile-lru
+    command: redis-server --requirepass ${REDIS_SESSION_PASSWORD:-session_password_change_me} --maxmemory 512mb --maxmemory-policy volatile-lru
     ports:
-      - "6381:6379"
+      - "${REDIS_SESSION_PORT:-6381}:6379"
     volumes:
       - redis-session-data:/data
     networks:
@@ -172,9 +172,9 @@ services:
   redis-cart:
     image: redis:7-alpine
     container_name: redis-cart
-    command: redis-server --requirepass ${REDIS_CART_PASSWORD:-cart_password} --maxmemory 512mb --maxmemory-policy volatile-ttl --appendonly no --save ""
+    command: redis-server --requirepass ${REDIS_CART_PASSWORD:-cart_password_change_me} --maxmemory 512mb --maxmemory-policy volatile-ttl --appendonly no --save ""
     ports:
-      - "6382:6379"
+      - "${REDIS_CART_PORT:-6382}:6379"
     volumes:
       - redis-cart-data:/data
     networks:
@@ -222,31 +222,30 @@ services:
       start_period: 30s
     restart: unless-stopped
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    ports:
-      - "9090:9090"
-    networks:
-      - abstracttrade-network
-    restart: unless-stopped
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - abstracttrade-network
+  #   restart: unless-stopped
 
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    environment:
-      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-    ports:
-      - "3000:3000"
-    networks:
-      - abstracttrade-network
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: grafana
+  #   environment:
+  #     GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+  #     GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - abstracttrade-network
+  #   depends_on:
+  #     - prometheus
+  #   restart: unless-stopped
