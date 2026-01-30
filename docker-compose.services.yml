@@ -13,8 +13,8 @@ services:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8080
       # Redis Rate Limiting
-      REDIS_RATELIMIT_HOST: redis-ratelimit
-      REDIS_RATELIMIT_PORT: 6379
+      REDIS_RATELIMIT_HOST: redis-rate-limit
+      REDIS_RATELIMIT_PORT: ${REDIS_RATELIMIT_PORT:-6379}
       REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me}
       # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
@@ -57,11 +57,11 @@ services:
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_AUTH_USER:-auth_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password_change_me}
       # Redis Session
-      SPRING_REDIS_HOST: redis-session
-      SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password}
+      REDIS_SESSION_HOST: redis-session
+      REDIS_SESSION_PORT: ${REDIS_SESSION_PORT:-6379}
+      REDIS_SESSION_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       # Gateway Security
       GATEWAY_SERVICE_SECRET: ${GATEWAY_SERVICE_SECRET:-gateway-secret-change-me}
@@ -92,11 +92,11 @@ services:
       AUTH_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password_change_me}
       ORDER_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
       ORDER_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
-      ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
+      ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password_change_me}
       # Redis Cache
-      SPRING_REDIS_HOST: redis-catalog
-      SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
+      REDIS_CATALOG_HOST: redis-catalog
+      REDIS_CATALOG_PORT: ${REDIS_CATALOG_PORT:-6379}
+      REDIS_CATALOG_PASSWORD: ${REDIS_CATALOG_PASSWORD:-catalog_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8082:8082"
@@ -121,14 +121,17 @@ services:
       SERVER_PORT: 8083
       GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
-      # Redis Cache
-      SPRING_REDIS_HOST: redis-catalog
-      SPRING_REDIS_PORT: 6379
-      SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      POSTGRES_PRODUCT_HOST: postgres-product
+      POSTGRES_PRODUCT_PORT: 5432
+      POSTGRES_PRODUCT_DB: ${POSTGRES_PRODUCT_DB:-product_db}
+      POSTGRES_PRODUCT_USER: ${POSTGRES_PRODUCT_USER:-product_user}
+      POSTGRES_PRODUCT_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password_change_me}
+      # Redis Catalog
+      REDIS_CATALOG_HOST: redis-catalog
+      REDIS_CATALOG_PORT: ${REDIS_CATALOG_PORT:-6379}
+      REDIS_CATALOG_PASSWORD: ${REDIS_CATALOG_PASSWORD:-catalog_password_change_me}
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       GATEWAY_SERVICE_SECRET: ${GATEWAY_SERVICE_SECRET:-gateway-secret-change-me}
     ports:
       - "8083:8083"
@@ -154,12 +157,12 @@ services:
       GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # Redis Cart
       REDIS_CART_HOST: redis-cart
-      REDIS_CART_PORT: 6379
-      REDIS_CART_PASSWORD: ${REDIS_CART_PASSWORD:-cart_password}
+      REDIS_CART_PORT: ${REDIS_CART_PORT:-6379}
+      REDIS_CART_PASSWORD: ${REDIS_CART_PASSWORD:-cart_password_change_me}
       # Redis Rate Limit
-      REDIS_RATELIMIT_HOST: redis-ratelimit
-      REDIS_RATELIMIT_PORT: 6379
-      REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password}
+      REDIS_RATELIMIT_HOST: redis-rate-limit
+      REDIS_RATELIMIT_PORT: ${REDIS_RATELIMIT_PORT:-6379}
+      REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8084:8084"
@@ -186,7 +189,7 @@ services:
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/${POSTGRES_PAYMENT_DB:-payment_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PAYMENT_USER:-payment_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8085:8085"
@@ -213,7 +216,7 @@ services:
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/${POSTGRES_NOTIFICATION_DB:-notification_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_NOTIFICATION_USER:-notification_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8086:8086"
@@ -240,7 +243,7 @@ services:
       # PostgreSQL (shares product_db)
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8087:8087"
@@ -267,7 +270,7 @@ services:
       # PostgreSQL (reads from order_db)
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8088:8088"
