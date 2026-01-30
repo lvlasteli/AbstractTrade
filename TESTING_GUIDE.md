@@ -1,5 +1,38 @@
 # AbstractTrade - Docker Services Testing Guide
 
+This guide provides an overview of all services, health checks, and Docker management commands. For detailed API endpoint testing, see the service-specific documentation below.
+
+## API Documentation References
+
+For detailed API endpoint testing and cURL commands, see:
+
+- **Auth Service**: [AuthService/TEST_CURL_COMMANDS.md](./AuthService/TEST_CURL_COMMANDS.md)
+  - User registration, login, logout
+  - Session management and validation
+  - Password reset flow
+  - Error scenarios and validation testing
+
+- **Product Service**: [ProductService/TEST_CURL_COMMANDS.md](./ProductService/TEST_CURL_COMMANDS.md)
+  - Product listing and pagination
+  - Product search
+  - Category management
+  - Product validation
+
+- **Cart Service**: [CartService/TEST_CURL_COMMANDS.md](./CartService/TEST_CURL_COMMANDS.md)
+  - Add/update/remove cart items
+  - Anonymous and authenticated cart flows
+  - Cart validation scenarios
+  - Complete shopping workflows
+
+- **Cart Validation (Gateway)**: [GatewayService/TEST_CART_VALIDATION_COMMANDS.md](./GatewayService/TEST_CART_VALIDATION_COMMANDS.md)
+  - Product validation when adding to cart
+  - Edge cases and error handling
+  - Stock and availability testing
+
+- **Gateway Endpoints**: [GatewayService/ENDPOINTS.md](./GatewayService/ENDPOINTS.md)
+  - Complete API endpoint reference
+  - Rate limiting and security
+
 ## Quick Reference: All Services and Ports
 
 | Service | Port | Health Check | Description |
@@ -102,9 +135,9 @@ done
 
 ---
 
-## Testing Through Gateway (Recommended)
+## Quick API Testing
 
-**Gateway URL:** `http://localhost:8080`
+**Gateway URL:** `http://localhost:8080` (Recommended Entry Point)
 
 The Gateway Service is the main entry point for all external requests. It handles:
 - Request routing to appropriate microservices
@@ -113,134 +146,37 @@ The Gateway Service is the main entry point for all external requests. It handle
 - Header management
 - Authentication forwarding
 
-### 1. Test Product Service (Through Gateway)
+### Quick Test Commands
+
+For detailed endpoint testing, please refer to the service-specific documentation linked above. Here are some quick examples:
 
 ```bash
-# List products
+# Test Products (see ProductService/TEST_CURL_COMMANDS.md for more)
 curl http://localhost:8080/products
 
-# Get specific product
-curl http://localhost:8080/products/550e8400-e29b-41d4-a716-446655440001
-
-# Search products
-curl "http://localhost:8080/products/search?q=wireless"
-
-# Get categories
-curl http://localhost:8080/products/categories
-
-# Get category by slug
-curl http://localhost:8080/products/categories/electronics
-```
-
-### 2. Test Auth Service (Through Gateway)
-
-```bash
-# Register a new user
+# Test Auth (see AuthService/TEST_CURL_COMMANDS.md for more)
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "test@example.com",
-    "username": "testuser",
-    "password": "SecurePass123!"
-  }'
+  -d '{"email":"test@example.com","username":"testuser","password":"SecurePass123!"}'
 
-# Login
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "identifier": "test@example.com",
-    "password": "SecurePass123!"
-  }' \
-  -c cookies.txt -v
-
-# Get current user (requires auth)
-curl http://localhost:8080/auth/me \
-  -b cookies.txt
-
-# Logout
-curl -X POST http://localhost:8080/auth/logout \
-  -b cookies.txt
-```
-
-### 3. Test Cart Service (Through Gateway)
-
-```bash
-# Add item to cart (anonymous)
+# Test Cart (see CartService/TEST_CURL_COMMANDS.md for more)
 curl -X POST http://localhost:8080/cart/items \
   -H "Content-Type: application/json" \
-  -d '{
-    "sku": "ELEC-001",
-    "quantity": 2
-  }' \
-  -c cart_cookies.txt -v
-
-# View cart
-curl http://localhost:8080/cart \
-  -b cart_cookies.txt
-
-# Update item quantity
-curl -X PUT http://localhost:8080/cart/items/ELEC-001 \
-  -H "Content-Type: application/json" \
-  -b cart_cookies.txt \
-  -d '{
-    "quantity": 5
-  }'
-
-# Remove item from cart
-curl -X DELETE http://localhost:8080/cart/items/ELEC-001 \
-  -b cart_cookies.txt
-
-# Clear cart
-curl -X DELETE http://localhost:8080/cart \
-  -b cart_cookies.txt
+  -d '{"sku":"ELEC-001","quantity":2}' \
+  -c cart_cookies.txt
 ```
 
----
+### Direct Service Access (Testing Only)
 
-## Direct Service Access (Development/Testing)
-
-For testing individual services directly (bypassing the gateway):
-
-**Important:** Most services require the `X-Gateway-Request` header with the gateway secret:
-```
-X-Gateway-Request: gateway-secret-change-me
-```
-
-### Auth Service Direct (Port 8081)
+For testing individual services directly (bypassing the gateway), most services require the `X-Gateway-Request` header:
 
 ```bash
-curl -X POST http://localhost:8081/auth/register \
-  -H "Content-Type: application/json" \
-  -H "X-Gateway-Request: gateway-secret-change-me" \
-  -d '{
-    "email": "direct@example.com",
-    "username": "directuser",
-    "password": "SecurePass123!"
-  }'
-```
-
-### Product Service Direct (Port 8083)
-
-```bash
-curl http://localhost:8083/products?page=0&size=10 \
-  -H "X-Gateway-Request: gateway-secret-change-me"
-
-curl http://localhost:8083/products/categories \
+# Example: Direct access to Product Service (Port 8083)
+curl http://localhost:8083/products \
   -H "X-Gateway-Request: gateway-secret-change-me"
 ```
 
-### Cart Service Direct (Port 8084)
-
-```bash
-curl -X POST http://localhost:8084/cart/items \
-  -H "Content-Type: application/json" \
-  -H "X-Gateway-Request: gateway-secret-change-me" \
-  -d '{
-    "sku": "ELEC-001",
-    "quantity": 1
-  }' \
-  -c direct_cart.txt -v
-```
+**Note:** See individual service documentation for complete direct access examples.
 
 ---
 
@@ -298,69 +234,58 @@ make rebuild
 
 ---
 
-## Testing Scenarios
+## Complete E2E Test Flow
 
-### Complete E2E Test Flow
+Here's a complete end-to-end shopping flow example. For detailed commands and variations, see the individual service documentation.
 
 ```bash
 # 1. Check if services are healthy
 curl http://localhost:8080/actuator/health
 
-# 2. Register a new user
+# 2. Register a new user (see AuthService/TEST_CURL_COMMANDS.md)
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "shopper@example.com",
-    "username": "shopper1",
-    "password": "ShopSecure123!"
-  }'
+  -d '{"email":"shopper@example.com","username":"shopper1","password":"ShopSecure123!"}'
 
-# 3. Login
+# 3. Login (see AuthService/TEST_CURL_COMMANDS.md)
 curl -X POST http://localhost:8080/auth/login \
   -H "Content-Type: application/json" \
-  -d '{
-    "identifier": "shopper@example.com",
-    "password": "ShopSecure123!"
-  }' \
+  -d '{"identifier":"shopper@example.com","password":"ShopSecure123!"}' \
   -c session.txt -v
 
-# 4. Browse products
-curl http://localhost:8080/products \
-  -b session.txt
+# 4. Browse products (see ProductService/TEST_CURL_COMMANDS.md)
+curl http://localhost:8080/products -b session.txt
 
-# 5. Search for products
-curl "http://localhost:8080/products/search?q=headphones" \
-  -b session.txt
+# 5. Search for products (see ProductService/TEST_CURL_COMMANDS.md)
+curl "http://localhost:8080/products/search?q=headphones" -b session.txt
 
-# 6. Add items to cart
+# 6. Add items to cart (see CartService/TEST_CURL_COMMANDS.md)
 curl -X POST http://localhost:8080/cart/items \
   -H "Content-Type: application/json" \
   -b session.txt \
-  -d '{
-    "sku": "ELEC-001",
-    "quantity": 1
-  }'
+  -d '{"sku":"ELEC-001","quantity":1}'
 
-# 7. View cart
-curl http://localhost:8080/cart \
-  -b session.txt
+# 7. View cart (see CartService/TEST_CURL_COMMANDS.md)
+curl http://localhost:8080/cart -b session.txt
 
-# 8. Update cart item
+# 8. Update cart item (see CartService/TEST_CURL_COMMANDS.md)
 curl -X PUT http://localhost:8080/cart/items/ELEC-001 \
   -H "Content-Type: application/json" \
   -b session.txt \
-  -d '{
-    "quantity": 2
-  }'
+  -d '{"quantity":2}'
 
 # 9. Proceed to checkout (if implemented)
-# curl -X POST http://localhost:8080/orders/checkout \
-#   -b session.txt
+# curl -X POST http://localhost:8080/orders/checkout -b session.txt
 
-# 10. Logout
-curl -X POST http://localhost:8080/auth/logout \
-  -b session.txt
+# 10. Logout (see AuthService/TEST_CURL_COMMANDS.md)
+curl -X POST http://localhost:8080/auth/logout -b session.txt
 ```
+
+**For more testing scenarios:**
+- Anonymous cart flow → [CartService/TEST_CURL_COMMANDS.md](./CartService/TEST_CURL_COMMANDS.md)
+- Product validation → [GatewayService/TEST_CART_VALIDATION_COMMANDS.md](./GatewayService/TEST_CART_VALIDATION_COMMANDS.md)
+- Auth error testing → [AuthService/TEST_CURL_COMMANDS.md](./AuthService/TEST_CURL_COMMANDS.md)
+- Product search and pagination → [ProductService/TEST_CURL_COMMANDS.md](./ProductService/TEST_CURL_COMMANDS.md)
 
 ---
 
@@ -438,16 +363,6 @@ docker network inspect abstracttrade-network
 docker network inspect abstracttrade-network | grep Name
 ```
 
----
-
-## API Documentation References
-
-For detailed API documentation and more test commands, see:
-
-- **Auth Service**: [AuthService/TEST_CURL_COMMANDS.md](./AuthService/TEST_CURL_COMMANDS.md)
-- **Product Service**: [ProductService/TEST_CURL_COMMANDS.md](./ProductService/TEST_CURL_COMMANDS.md)
-- **Cart Service**: [GatewayService/TEST_CART_VALIDATION_COMMANDS.md](./GatewayService/TEST_CART_VALIDATION_COMMANDS.md)
-- **Gateway Endpoints**: [GatewayService/ENDPOINTS.md](./GatewayService/ENDPOINTS.md)
 
 ---
 
@@ -457,11 +372,15 @@ For detailed API documentation and more test commands, see:
 # Start everything
 make up
 
+# Check all services health
+for port in 8080 8081 8082 8083 8084 8085 8086 8087 8088 8089 8090; do
+  echo -n "Port $port: "
+  curl -s -o /dev/null -w "%{http_code}" http://localhost:$port/actuator/health
+  echo
+done
+
 # Test Gateway (main entry point)
 curl http://localhost:8080/actuator/health
-
-# Test Product Service through Gateway
-curl http://localhost:8080/products
 
 # View all logs
 make logs-services
@@ -482,3 +401,14 @@ make down
 - Products are cached in **Redis** (categories only)
 - All async events go through **Kafka**
 - Metrics are collected by **Prometheus** and visualized in **Grafana**
+
+### Additional Documentation
+
+- **Architecture**: See [ARHITECTURE.md](./ARHITECTURE.md) for system design and service interactions
+- **Quick Start**: See [QUICK_START.md](./QUICK_START.md) for setup and deployment instructions
+- **Gateway Endpoints**: See [GatewayService/ENDPOINTS.md](./GatewayService/ENDPOINTS.md) for complete API reference
+- **Service-Specific Tests**:
+  - Auth → [AuthService/TEST_CURL_COMMANDS.md](./AuthService/TEST_CURL_COMMANDS.md)
+  - Products → [ProductService/TEST_CURL_COMMANDS.md](./ProductService/TEST_CURL_COMMANDS.md)
+  - Cart → [CartService/TEST_CURL_COMMANDS.md](./CartService/TEST_CURL_COMMANDS.md)
+  - Cart Validation → [GatewayService/TEST_CART_VALIDATION_COMMANDS.md](./GatewayService/TEST_CART_VALIDATION_COMMANDS.md)

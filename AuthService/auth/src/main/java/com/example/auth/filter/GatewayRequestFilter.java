@@ -47,8 +47,7 @@ public class GatewayRequestFilter extends OncePerRequestFilter {
         }
 
         String requestPath = request.getRequestURI();
-        if (requestPath.startsWith("/actuator/health")) {
-            filterChain.doFilter(request, response);
+        if (requestPath.contains("/actuator/health") || requestPath.contains("/actuator")) {            filterChain.doFilter(request, response);
             return;
         }
 
