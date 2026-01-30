@@ -38,16 +38,7 @@ public class ProductService {
             .map(this::mapToProductResponse);
     }
     
-    /**
-     * Get product by SKU with validation for cart operations.
-     * Allows out-of-stock products as users can wait for restocking.
-     * 
-     * @param sku The product SKU
-     * @param quantity Optional quantity parameter (not used for validation, kept for API compatibility)
-     * @return ProductResponse
-     * @throws ProductNotFoundException if product doesn't exist
-     * @throws ProductNotAvailableException if product is not active
-     */
+
     public ProductResponse getProductBySkuWithValidation(String sku, Integer quantity) {
         log.debug("Validating product: sku={}", sku);
         
@@ -65,7 +56,6 @@ public class ProductService {
             );
         }
         
-        log.info("Product validation successful: sku={}", sku);
         return mapToProductResponse(product);
     }   
 

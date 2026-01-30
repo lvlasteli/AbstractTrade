@@ -319,52 +319,9 @@ curl -X GET "http://localhost:8080/products/categories/electronics"
   "message": "Product not found with id: ..."
 }
 ```
-
----
-
-## Quick Test Script
-
-Save this as `test-product-service.sh`:
-
-```bash
-#!/bin/bash
-
-BASE_URL="http://localhost:8080"
-
-echo "=== Testing ProductService ==="
-echo ""
-
-echo "1. List all products (first page):"
-curl -s -X GET "$BASE_URL/products?page=0&size=5" | jq '.'
-echo ""
-
-echo "2. Get all categories:"
-curl -s -X GET "$BASE_URL/products/categories" | jq '.'
-echo ""
-
-echo "3. Search for 'wireless':"
-curl -s -X GET "$BASE_URL/products/search?q=wireless" | jq '.'
-echo ""
-
-echo "4. Get Electronics category:"
-curl -s -X GET "$BASE_URL/products/categories/electronics" | jq '.'
-echo ""
-
-echo "=== Tests Complete ==="
-```
-
-Make it executable:
-```bash
-chmod +x test-product-service.sh
-./test-product-service.sh
-```
-
----
-
 ## Notes
 
 - All endpoints are **public** (no authentication required)
-- Default page size is **20**, maximum is **100**
 - Page numbers start at **0**
 - Search is **case-insensitive** and searches both name and description
 - Categories are **cached in Redis** for 30 days (configurable)

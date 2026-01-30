@@ -12,7 +12,24 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8080
+      # Redis Rate Limiting
+      REDIS_RATELIMIT_HOST: redis-ratelimit
+      REDIS_RATELIMIT_PORT: 6379
+      REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me}
+      # Kafka
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      # Gateway Security
       GATEWAY_SERVICE_SECRET: ${GATEWAY_SERVICE_SECRET:-gateway-secret-change-me}
+      # Service URLs
+      AUTH_SERVICE_URL: ${AUTH_SERVICE_URL:-http://auth-service:8081}
+      PRODUCT_SERVICE_URL: ${PRODUCT_SERVICE_URL:-http://product-service:8083}
+      CART_SERVICE_URL: ${CART_SERVICE_URL:-http://cart-service:8084}
+      PAYMENT_SERVICE_URL: ${PAYMENT_SERVICE_URL:-http://payment-service:8085}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL:-http://notification-service:8086}
+      LOGISTICS_SERVICE_URL: ${LOGISTICS_SERVICE_URL:-http://logistics-service:8087}
+      ANALYTICS_SERVICE_URL: ${ANALYTICS_SERVICE_URL:-http://analytics-service:8088}
+      LISTENER_SERVICE_URL: ${LISTENER_SERVICE_URL:-http://listener-service:8089}
+      METRICS_SERVICE_URL: ${METRICS_SERVICE_URL:-http://metrics-service:8090}
     ports:
       - "8080:8080"
     networks:
@@ -30,12 +47,13 @@ services:
   
   auth-service:
     build:
-      context: ./AuthService/auth
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./AuthService/auth/Dockerfile
     container_name: auth-service
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8081
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_AUTH_USER:-auth_user}
@@ -44,7 +62,7 @@ services:
       SPRING_REDIS_HOST: redis-session
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       # Gateway Security
       GATEWAY_SERVICE_SECRET: ${GATEWAY_SERVICE_SECRET:-gateway-secret-change-me}
     ports:
@@ -67,10 +85,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8082
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL (connects to both auth and order databases)
       AUTH_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
       AUTH_DATASOURCE_USERNAME: ${POSTGRES_AUTH_USER:-auth_user}
-      AUTH_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password}
+      AUTH_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password_change_me}
       ORDER_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
       ORDER_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
       ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
@@ -78,7 +97,7 @@ services:
       SPRING_REDIS_HOST: redis-catalog
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8082:8082"
     networks:
@@ -100,6 +119,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8083
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
@@ -108,7 +128,8 @@ services:
       SPRING_REDIS_HOST: redis-catalog
       SPRING_REDIS_PORT: 6379
       SPRING_REDIS_PASSWORD: ${REDIS_CACHE_PASSWORD:-cache_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      GATEWAY_SERVICE_SECRET: ${GATEWAY_SERVICE_SECRET:-gateway-secret-change-me}
     ports:
       - "8083:8083"
     networks:
@@ -130,6 +151,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8084
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # Redis Cart
       REDIS_CART_HOST: redis-cart
       REDIS_CART_PORT: 6379
@@ -138,14 +160,11 @@ services:
       REDIS_RATELIMIT_HOST: redis-ratelimit
       REDIS_RATELIMIT_PORT: 6379
       REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8084:8084"
     networks:
       - abstracttrade-network
-    depends_on:
-      redis-cart:
-        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
@@ -163,11 +182,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8085
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-payment:5432/${POSTGRES_PAYMENT_DB:-payment_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PAYMENT_USER:-payment_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PAYMENT_PASSWORD:-payment_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8085:8085"
     networks:
@@ -183,17 +203,18 @@ services:
   
   notification-service:
     build:
-      context: ./NotificationService/notification
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./NotificationService/notification/Dockerfile
     container_name: notification-service
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8086
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-notification:5432/${POSTGRES_NOTIFICATION_DB:-notification_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_NOTIFICATION_USER:-notification_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_NOTIFICATION_PASSWORD:-notification_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8086:8086"
     networks:
@@ -215,11 +236,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8087
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL (shares product_db)
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-product:5432/${POSTGRES_PRODUCT_DB:-product_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_PRODUCT_USER:-product_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8087:8087"
     networks:
@@ -241,11 +263,12 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8088
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # PostgreSQL (reads from order_db)
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/${POSTGRES_ORDER_DB:-order_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_ORDER_USER:-order_user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password}
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8088:8088"
     networks:
@@ -267,7 +290,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8089
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8089:8089"
     networks:
@@ -283,13 +307,14 @@ services:
   
   metrics-service:
     build:
-      context: ./MetricsService/metrics
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./MetricsService/metrics/Dockerfile
     container_name: metrics-service
     environment:
       SPRING_PROFILES_ACTIVE: ${ENVIRONMENT:-dev}
       SERVER_PORT: 8090
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
       - "8090:8090"
     networks:

@@ -25,9 +25,9 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- Create indexes
-CREATE INDEX idx_category_id ON products(category_id);
-CREATE INDEX idx_sku ON products(sku);
-CREATE INDEX idx_is_active ON products(is_active);
+CREATE INDEX IF NOT EXISTS idx_category_id ON products(category_id);
+CREATE INDEX IF NOT EXISTS idx_sku ON products(sku);
+CREATE INDEX IF NOT EXISTS idx_is_active ON products(is_active);
 
 INSERT INTO categories (id, name, description, slug, image_url) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', 'Electronics', 'Latest electronic devices and gadgets', 'electronics', 'https://example.com/images/categories/electronics.jpg'),
@@ -39,7 +39,8 @@ INSERT INTO categories (id, name, description, slug, image_url) VALUES
 ('550e8400-e29b-41d4-a716-446655440007', 'Food & Beverages', 'Food items and beverages', 'food-beverages', 'https://example.com/images/categories/food-beverages.jpg'),
 ('550e8400-e29b-41d4-a716-446655440008', 'Health', 'Health and wellness products', 'health', 'https://example.com/images/categories/health.jpg'),
 ('550e8400-e29b-41d4-a716-446655440009', 'Clothing', 'Apparel and fashion items', 'clothing', 'https://example.com/images/categories/clothing.jpg'),
-('550e8400-e29b-41d4-a716-446655440010', 'Board Games', 'Board games and tabletop gaming', 'board-games', 'https://example.com/images/categories/board-games.jpg');
+('550e8400-e29b-41d4-a716-446655440010', 'Board Games', 'Board games and tabletop gaming', 'board-games', 'https://example.com/images/categories/board-games.jpg')
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert 100 products (10 per category)
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
@@ -52,7 +53,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Webcam HD 1080p', 'Full HD webcam with auto-focus and noise cancellation', 79.99, 'ELEC-007', 250, 'https://example.com/images/products/webcam.jpg', '550e8400-e29b-41d4-a716-446655440001'),
 ('Bluetooth Speaker', 'Waterproof portable speaker with 360-degree sound', 59.99, 'ELEC-008', 350, 'https://example.com/images/products/speaker.jpg', '550e8400-e29b-41d4-a716-446655440001'),
 ('Tablet Stand', 'Adjustable aluminum tablet stand for desk use', 19.99, 'ELEC-009', 600, 'https://example.com/images/products/stand.jpg', '550e8400-e29b-41d4-a716-446655440001'),
-('USB Hub 4-Port', 'USB 3.0 hub with 4 ports and LED indicators', 15.99, 'ELEC-010', 450, 'https://example.com/images/products/usbhub.jpg', '550e8400-e29b-41d4-a716-446655440001');
+('USB Hub 4-Port', 'USB 3.0 hub with 4 ports and LED indicators', 15.99, 'ELEC-010', 450, 'https://example.com/images/products/usbhub.jpg', '550e8400-e29b-41d4-a716-446655440001')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('The Great Gatsby', 'Classic American novel by F. Scott Fitzgerald', 12.99, 'BOOK-001', 200, 'https://example.com/images/products/gatsby.jpg', '550e8400-e29b-41d4-a716-446655440002'),
@@ -64,7 +66,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Harry Potter Complete Set', 'All 7 books in the Harry Potter series', 89.99, 'BOOK-007', 120, 'https://example.com/images/products/hp.jpg', '550e8400-e29b-41d4-a716-446655440002'),
 ('The Hobbit', 'J.R.R. Tolkien''s fantasy adventure novel', 15.99, 'BOOK-008', 210, 'https://example.com/images/products/hobbit.jpg', '550e8400-e29b-41d4-a716-446655440002'),
 ('Dune', 'Frank Herbert''s epic science fiction novel', 16.99, 'BOOK-009', 175, 'https://example.com/images/products/dune.jpg', '550e8400-e29b-41d4-a716-446655440002'),
-('The Alchemist', 'Paulo Coelho''s inspirational novel', 13.99, 'BOOK-010', 280, 'https://example.com/images/products/alchemist.jpg', '550e8400-e29b-41d4-a716-446655440002');
+('The Alchemist', 'Paulo Coelho''s inspirational novel', 13.99, 'BOOK-010', 280, 'https://example.com/images/products/alchemist.jpg', '550e8400-e29b-41d4-a716-446655440002')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Naruto Shippuden Figure', 'Collectible Naruto action figure with accessories', 49.99, 'ANIME-001', 100, 'https://example.com/images/products/naruto-fig.jpg', '550e8400-e29b-41d4-a716-446655440003'),
@@ -76,7 +79,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Studio Ghibli Totoro Plush', 'Soft Totoro plush toy from Studio Ghibli', 29.99, 'ANIME-007', 180, 'https://example.com/images/products/totoro.jpg', '550e8400-e29b-41d4-a716-446655440003'),
 ('Death Note Notebook', 'Replica Death Note notebook with pen', 19.99, 'ANIME-008', 250, 'https://example.com/images/products/deathnote.jpg', '550e8400-e29b-41d4-a716-446655440003'),
 ('Fullmetal Alchemist Pin Set', 'Collectible FMA enamel pin collection', 16.99, 'ANIME-009', 300, 'https://example.com/images/products/fma-pins.jpg', '550e8400-e29b-41d4-a716-446655440003'),
-('Spirited Away Wall Scroll', 'Official Spirited Away wall scroll 24x36', 22.99, 'ANIME-010', 160, 'https://example.com/images/products/spirited-scroll.jpg', '550e8400-e29b-41d4-a716-446655440003');
+('Spirited Away Wall Scroll', 'Official Spirited Away wall scroll 24x36', 22.99, 'ANIME-010', 160, 'https://example.com/images/products/spirited-scroll.jpg', '550e8400-e29b-41d4-a716-446655440003')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('LEGO Classic Building Set', '106-piece LEGO building set for creative play', 24.99, 'TOY-001', 350, 'https://example.com/images/products/lego-classic.jpg', '550e8400-e29b-41d4-a716-446655440004'),
@@ -88,7 +92,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Building Blocks Set', 'Wooden building blocks set with 100 pieces', 29.99, 'TOY-007', 250, 'https://example.com/images/products/blocks.jpg', '550e8400-e29b-41d4-a716-446655440004'),
 ('Magic 8 Ball', 'Classic Magic 8 Ball fortune teller toy', 8.99, 'TOY-008', 450, 'https://example.com/images/products/magic8.jpg', '550e8400-e29b-41d4-a716-446655440004'),
 ('Fidget Spinner', 'Premium metal fidget spinner with LED lights', 6.99, 'TOY-009', 600, 'https://example.com/images/products/fidget.jpg', '550e8400-e29b-41d4-a716-446655440004'),
-('Slinky Metal', 'Classic metal Slinky toy', 7.99, 'TOY-010', 550, 'https://example.com/images/products/slinky.jpg', '550e8400-e29b-41d4-a716-446655440004');
+('Slinky Metal', 'Classic metal Slinky toy', 7.99, 'TOY-010', 550, 'https://example.com/images/products/slinky.jpg', '550e8400-e29b-41d4-a716-446655440004')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Moisturizing Face Cream', 'Hydrating face cream with SPF 30 protection', 24.99, 'BEAU-001', 300, 'https://example.com/images/products/facecream.jpg', '550e8400-e29b-41d4-a716-446655440005'),
@@ -100,7 +105,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Makeup Brush Set', 'Professional 12-piece makeup brush set', 22.99, 'BEAU-007', 200, 'https://example.com/images/products/brushes.jpg', '550e8400-e29b-41d4-a716-446655440005'),
 ('Perfume 50ml', 'Elegant floral perfume 50ml bottle', 39.99, 'BEAU-008', 180, 'https://example.com/images/products/perfume.jpg', '550e8400-e29b-41d4-a716-446655440005'),
 ('Sunscreen SPF 50', 'Broad spectrum sunscreen SPF 50, 100ml', 15.99, 'BEAU-009', 450, 'https://example.com/images/products/sunscreen.jpg', '550e8400-e29b-41d4-a716-446655440005'),
-('Body Lotion', 'Moisturizing body lotion with shea butter, 500ml', 11.99, 'BEAU-010', 500, 'https://example.com/images/products/lotion.jpg', '550e8400-e29b-41d4-a716-446655440005');
+('Body Lotion', 'Moisturizing body lotion with shea butter, 500ml', 11.99, 'BEAU-010', 500, 'https://example.com/images/products/lotion.jpg', '550e8400-e29b-41d4-a716-446655440005')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Car Phone Mount', 'Magnetic car phone mount with vent clip', 12.99, 'AUTO-001', 400, 'https://example.com/images/products/phone-mount.jpg', '550e8400-e29b-41d4-a716-446655440006'),
@@ -112,7 +118,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Car Charger', 'Dual USB car charger with fast charging', 9.99, 'AUTO-007', 600, 'https://example.com/images/products/carcharger.jpg', '550e8400-e29b-41d4-a716-446655440006'),
 ('Steering Wheel Cover', 'Leather steering wheel cover with padding', 19.99, 'AUTO-008', 220, 'https://example.com/images/products/steering.jpg', '550e8400-e29b-41d4-a716-446655440006'),
 ('Car Seat Covers', 'Universal car seat covers set of 2', 29.99, 'AUTO-009', 280, 'https://example.com/images/products/seatcovers.jpg', '550e8400-e29b-41d4-a716-446655440006'),
-('Windshield Sun Shade', 'Foldable windshield sun shade for cars', 14.99, 'AUTO-010', 350, 'https://example.com/images/products/sunshade.jpg', '550e8400-e29b-41d4-a716-446655440006');
+('Windshield Sun Shade', 'Foldable windshield sun shade for cars', 14.99, 'AUTO-010', 350, 'https://example.com/images/products/sunshade.jpg', '550e8400-e29b-41d4-a716-446655440006')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Organic Coffee Beans', 'Premium organic coffee beans, 1lb bag', 16.99, 'FOOD-001', 400, 'https://example.com/images/products/coffee.jpg', '550e8400-e29b-41d4-a716-446655440007'),
@@ -124,7 +131,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Protein Powder', 'Whey protein powder, 2lb container', 29.99, 'FOOD-007', 250, 'https://example.com/images/products/protein.jpg', '550e8400-e29b-41d4-a716-446655440007'),
 ('Trail Mix', 'Premium trail mix with nuts and dried fruit, 1lb', 11.99, 'FOOD-008', 380, 'https://example.com/images/products/trailmix.jpg', '550e8400-e29b-41d4-a716-446655440007'),
 ('Coconut Water', 'Natural coconut water, pack of 12 cans', 18.99, 'FOOD-009', 320, 'https://example.com/images/products/coconut.jpg', '550e8400-e29b-41d4-a716-446655440007'),
-('Energy Drink', 'Natural energy drink, pack of 24', 24.99, 'FOOD-010', 400, 'https://example.com/images/products/energy.jpg', '550e8400-e29b-41d4-a716-446655440007');
+('Energy Drink', 'Natural energy drink, pack of 24', 24.99, 'FOOD-010', 400, 'https://example.com/images/products/energy.jpg', '550e8400-e29b-41d4-a716-446655440007')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Multivitamin Tablets', 'Daily multivitamin tablets, 90 count', 19.99, 'HEAL-001', 400, 'https://example.com/images/products/multivitamin.jpg', '550e8400-e29b-41d4-a716-446655440008'),
@@ -136,7 +144,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Protein Shaker Bottle', 'BPA-free protein shaker with mixing ball', 9.99, 'HEAL-007', 450, 'https://example.com/images/products/shaker.jpg', '550e8400-e29b-41d4-a716-446655440008'),
 ('Massage Ball', 'Therapy massage ball for trigger points', 8.99, 'HEAL-008', 400, 'https://example.com/images/products/massageball.jpg', '550e8400-e29b-41d4-a716-446655440008'),
 ('Vitamin D3', 'Vitamin D3 supplements, 1000 IU, 120 count', 12.99, 'HEAL-009', 380, 'https://example.com/images/products/vitamind.jpg', '550e8400-e29b-41d4-a716-446655440008'),
-('First Aid Kit', 'Comprehensive first aid kit with 100+ items', 29.99, 'HEAL-010', 200, 'https://example.com/images/products/firstaid.jpg', '550e8400-e29b-41d4-a716-446655440008');
+('First Aid Kit', 'Comprehensive first aid kit with 100+ items', 29.99, 'HEAL-010', 200, 'https://example.com/images/products/firstaid.jpg', '550e8400-e29b-41d4-a716-446655440008')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Cotton T-Shirt', '100% cotton classic fit t-shirt, multiple colors', 14.99, 'CLOT-001', 500, 'https://example.com/images/products/tshirt.jpg', '550e8400-e29b-41d4-a716-446655440009'),
@@ -148,7 +157,8 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Athletic Shorts', 'Moisture-wicking athletic shorts', 24.99, 'CLOT-007', 380, 'https://example.com/images/products/shorts.jpg', '550e8400-e29b-41d4-a716-446655440009'),
 ('Socks Pack', 'Pack of 6 athletic socks, assorted colors', 12.99, 'CLOT-008', 600, 'https://example.com/images/products/socks.jpg', '550e8400-e29b-41d4-a716-446655440009'),
 ('Dress Shirt', 'Classic fit dress shirt, 100% cotton', 39.99, 'CLOT-009', 280, 'https://example.com/images/products/shirt.jpg', '550e8400-e29b-41d4-a716-446655440009'),
-('Backpack', 'Durable canvas backpack with laptop compartment', 44.99, 'CLOT-010', 250, 'https://example.com/images/products/backpack.jpg', '550e8400-e29b-41d4-a716-446655440009');
+('Backpack', 'Durable canvas backpack with laptop compartment', 44.99, 'CLOT-010', 250, 'https://example.com/images/products/backpack.jpg', '550e8400-e29b-41d4-a716-446655440009')
+ON CONFLICT (sku) DO NOTHING;
 
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Chess Set', 'Classic wooden chess set with board', 29.99, 'GAME-001', 200, 'https://example.com/images/products/chess.jpg', '550e8400-e29b-41d4-a716-446655440010'),
@@ -160,59 +170,70 @@ INSERT INTO products (name, description, price, sku, stock, image_url, category_
 ('Cards Against Humanity', 'Party game for horrible people', 25.99, 'GAME-007', 300, 'https://example.com/images/products/cah.jpg', '550e8400-e29b-41d4-a716-446655440010'),
 ('Risk', 'Classic strategy board game of world domination', 32.99, 'GAME-008', 170, 'https://example.com/images/products/risk.jpg', '550e8400-e29b-41d4-a716-446655440010'),
 ('Uno', 'Classic Uno card game', 8.99, 'GAME-009', 500, 'https://example.com/images/products/uno.jpg', '550e8400-e29b-41d4-a716-446655440010'),
-('Jenga', 'Classic Jenga tower stacking game', 14.99, 'GAME-010', 350, 'https://example.com/images/products/jenga.jpg', '550e8400-e29b-41d4-a716-446655440010');
+('Jenga', 'Classic Jenga tower stacking game', 14.99, 'GAME-010', 350, 'https://example.com/images/products/jenga.jpg', '550e8400-e29b-41d4-a716-446655440010')
+ON CONFLICT (sku) DO NOTHING;
 
 -- Additional products with special states (inactive/out of stock)
 
 -- Electronics: 1 inactive item
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
-('VR Headset Gen 1', 'First generation VR headset - Discontinued model', 149.99, 'ELEC-011', 75, 'https://example.com/images/products/vr-old.jpg', '550e8400-e29b-41d4-a716-446655440001', FALSE);
+('VR Headset Gen 1', 'First generation VR headset - Discontinued model', 149.99, 'ELEC-011', 75, 'https://example.com/images/products/vr-old.jpg', '550e8400-e29b-41d4-a716-446655440001', FALSE)
+ON CONFLICT (sku) DO NOTHING;
 
 -- Books: 2 inactive books
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
 ('Encyclopedia Set 2010', 'Complete encyclopedia set from 2010 - Out of print', 99.99, 'BOOK-011', 20, 'https://example.com/images/products/encyclopedia.jpg', '550e8400-e29b-41d4-a716-446655440002', FALSE),
-('Dictionary 1st Edition', 'First edition dictionary - Collector''s item only', 45.99, 'BOOK-012', 15, 'https://example.com/images/products/dictionary-old.jpg', '550e8400-e29b-41d4-a716-446655440002', FALSE);
+('Dictionary 1st Edition', 'First edition dictionary - Collector''s item only', 45.99, 'BOOK-012', 15, 'https://example.com/images/products/dictionary-old.jpg', '550e8400-e29b-41d4-a716-446655440002', FALSE)
+ON CONFLICT (sku) DO NOTHING;
 
 -- Anime: 3 inactive items
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
 ('Bleach Figure Series 1', 'Original Bleach figure - No longer in production', 39.99, 'ANIME-011', 25, 'https://example.com/images/products/bleach-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE),
 ('Yu-Gi-Oh! Card Pack 2005', 'Vintage Yu-Gi-Oh card pack - Discontinued', 19.99, 'ANIME-012', 30, 'https://example.com/images/products/yugioh-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE),
-('Pokemon Poster Gen 1', 'Original Generation 1 Pokemon poster - Out of print', 24.99, 'ANIME-013', 18, 'https://example.com/images/products/pokemon-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE);
+('Pokemon Poster Gen 1', 'Original Generation 1 Pokemon poster - Out of print', 24.99, 'ANIME-013', 18, 'https://example.com/images/products/pokemon-old.jpg', '550e8400-e29b-41d4-a716-446655440003', FALSE)
+ON CONFLICT (sku) DO NOTHING;
 
 -- Toys: 4 inactive items
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
 ('Tamagotchi Original', 'Original Tamagotchi virtual pet - Vintage model', 29.99, 'TOY-011', 12, 'https://example.com/images/products/tamagotchi-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
 ('Beyblade First Series', 'First series Beyblade - No longer manufactured', 34.99, 'TOY-012', 22, 'https://example.com/images/products/beyblade-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
 ('Hot Wheels Track Set 2010', 'Vintage Hot Wheels track set - Discontinued', 44.99, 'TOY-013', 15, 'https://example.com/images/products/hotwheels-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE),
-('Action Figure Vintage', 'Classic action figure from 2008 - Out of production', 19.99, 'TOY-014', 28, 'https://example.com/images/products/action-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE);
+('Action Figure Vintage', 'Classic action figure from 2008 - Out of production', 19.99, 'TOY-014', 28, 'https://example.com/images/products/action-old.jpg', '550e8400-e29b-41d4-a716-446655440004', FALSE)
+ON CONFLICT (sku) DO NOTHING;
 
 -- Beauty: 1 product not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
-('Limited Edition Perfume', 'Exclusive limited edition perfume - Currently unavailable', 79.99, 'BEAU-011', 0, 'https://example.com/images/products/perfume-limited.jpg', '550e8400-e29b-41d4-a716-446655440005');
+('Limited Edition Perfume', 'Exclusive limited edition perfume - Currently unavailable', 79.99, 'BEAU-011', 0, 'https://example.com/images/products/perfume-limited.jpg', '550e8400-e29b-41d4-a716-446655440005')
+ON CONFLICT (sku) DO NOTHING;
 
 -- Automotive: 2 products not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Premium Car Wax', 'Professional grade car wax - Restocking soon', 24.99, 'AUTO-011', 0, 'https://example.com/images/products/carwax.jpg', '550e8400-e29b-41d4-a716-446655440006'),
-('LED Headlight Kit', 'High-performance LED headlight conversion kit - Out of stock', 129.99, 'AUTO-012', 0, 'https://example.com/images/products/led-headlight.jpg', '550e8400-e29b-41d4-a716-446655440006');
+('LED Headlight Kit', 'High-performance LED headlight conversion kit - Out of stock', 129.99, 'AUTO-012', 0, 'https://example.com/images/products/led-headlight.jpg', '550e8400-e29b-41d4-a716-446655440006')
+ON CONFLICT (sku) DO NOTHING;
 
 -- Food & Beverages: 3 products not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Artisan Bread Mix', 'Premium artisan bread mix - Temporarily unavailable', 13.99, 'FOOD-011', 0, 'https://example.com/images/products/bread-mix.jpg', '550e8400-e29b-41d4-a716-446655440007'),
 ('Imported Tea Collection', 'Rare imported tea collection - Awaiting restock', 34.99, 'FOOD-012', 0, 'https://example.com/images/products/tea-collection.jpg', '550e8400-e29b-41d4-a716-446655440007'),
-('Gourmet Spice Set', 'Premium gourmet spice collection - Out of stock', 29.99, 'FOOD-013', 0, 'https://example.com/images/products/spice-set.jpg', '550e8400-e29b-41d4-a716-446655440007');
+('Gourmet Spice Set', 'Premium gourmet spice collection - Out of stock', 29.99, 'FOOD-013', 0, 'https://example.com/images/products/spice-set.jpg', '550e8400-e29b-41d4-a716-446655440007')
+ON CONFLICT (sku) DO NOTHING;
 
 -- Health: 4 products not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id) VALUES
 ('Probiotic Supplements', 'Advanced probiotic supplements - Restocking soon', 27.99, 'HEAL-011', 0, 'https://example.com/images/products/probiotic.jpg', '550e8400-e29b-41d4-a716-446655440008'),
 ('Premium Yoga Block Set', 'High-density yoga block set - Currently unavailable', 19.99, 'HEAL-012', 0, 'https://example.com/images/products/yoga-blocks.jpg', '550e8400-e29b-41d4-a716-446655440008'),
 ('Acupressure Mat', 'Therapeutic acupressure mat - Out of stock', 44.99, 'HEAL-013', 0, 'https://example.com/images/products/acupressure.jpg', '550e8400-e29b-41d4-a716-446655440008'),
-('Collagen Peptides', 'Hydrolyzed collagen peptides powder - Temporarily unavailable', 34.99, 'HEAL-014', 0, 'https://example.com/images/products/collagen.jpg', '550e8400-e29b-41d4-a716-446655440008');
+('Collagen Peptides', 'Hydrolyzed collagen peptides powder - Temporarily unavailable', 34.99, 'HEAL-014', 0, 'https://example.com/images/products/collagen.jpg', '550e8400-e29b-41d4-a716-446655440008')
+ON CONFLICT (sku) DO NOTHING;
 
 -- Clothing: 1 product inactive AND not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
-('Vintage Leather Jacket', 'Vintage leather jacket 2015 model - Discontinued and sold out', 199.99, 'CLOT-011', 0, 'https://example.com/images/products/leather-vintage.jpg', '550e8400-e29b-41d4-a716-446655440009', FALSE);
+('Vintage Leather Jacket', 'Vintage leather jacket 2015 model - Discontinued and sold out', 199.99, 'CLOT-011', 0, 'https://example.com/images/products/leather-vintage.jpg', '550e8400-e29b-41d4-a716-446655440009', FALSE)
+ON CONFLICT (sku) DO NOTHING;
 
 -- Board Games: 2 products inactive AND not in stock
 INSERT INTO products (name, description, price, sku, stock, image_url, category_id, is_active) VALUES
 ('Axis & Allies 1st Edition', 'First edition Axis & Allies - Out of print and unavailable', 89.99, 'GAME-011', 0, 'https://example.com/images/products/axis-allies-old.jpg', '550e8400-e29b-41d4-a716-446655440010', FALSE),
-('Dungeons & Dragons Basic Set', 'Original D&D basic set - Collector''s item, no stock', 149.99, 'GAME-012', 0, 'https://example.com/images/products/dnd-basic.jpg', '550e8400-e29b-41d4-a716-446655440010', FALSE);
+('Dungeons & Dragons Basic Set', 'Original D&D basic set - Collector''s item, no stock', 149.99, 'GAME-012', 0, 'https://example.com/images/products/dnd-basic.jpg', '550e8400-e29b-41d4-a716-446655440010', FALSE)
+ON CONFLICT (sku) DO NOTHING;
