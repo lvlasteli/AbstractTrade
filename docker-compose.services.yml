@@ -14,7 +14,7 @@ services:
       SERVER_PORT: 8080
       # Redis Rate Limiting
       REDIS_RATELIMIT_HOST: redis-rate-limit
-      REDIS_RATELIMIT_PORT: ${REDIS_RATELIMIT_PORT:-6379}
+      REDIS_RATELIMIT_PORT: 6379
       REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me}
       # Kafka
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
@@ -60,7 +60,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_AUTH_PASSWORD:-auth_password_change_me}
       # Redis Session
       REDIS_SESSION_HOST: redis-session
-      REDIS_SESSION_PORT: ${REDIS_SESSION_PORT:-6379}
+      REDIS_SESSION_PORT: 6379
       REDIS_SESSION_PASSWORD: ${REDIS_SESSION_PASSWORD:-session_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
       # Gateway Security
@@ -95,7 +95,7 @@ services:
       ORDER_DATASOURCE_PASSWORD: ${POSTGRES_ORDER_PASSWORD:-order_password_change_me}
       # Redis Cache
       REDIS_CATALOG_HOST: redis-catalog
-      REDIS_CATALOG_PORT: ${REDIS_CATALOG_PORT:-6379}
+      REDIS_CATALOG_PORT: 6379
       REDIS_CATALOG_PASSWORD: ${REDIS_CATALOG_PASSWORD:-catalog_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
@@ -128,7 +128,7 @@ services:
       POSTGRES_PRODUCT_PASSWORD: ${POSTGRES_PRODUCT_PASSWORD:-product_password_change_me}
       # Redis Catalog
       REDIS_CATALOG_HOST: redis-catalog
-      REDIS_CATALOG_PORT: ${REDIS_CATALOG_PORT:-6379}
+      REDIS_CATALOG_PORT: 6379
       REDIS_CATALOG_PASSWORD: ${REDIS_CATALOG_PASSWORD:-catalog_password_change_me}
       # Kafka
       KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
@@ -157,11 +157,11 @@ services:
       GATEWAY_SERVICE: ${GATEWAY_SERVICE_URL:-http://gateway-service:8080}
       # Redis Cart
       REDIS_CART_HOST: redis-cart
-      REDIS_CART_PORT: ${REDIS_CART_PORT:-6379}
+      REDIS_CART_PORT: 6379
       REDIS_CART_PASSWORD: ${REDIS_CART_PASSWORD:-cart_password_change_me}
       # Redis Rate Limit
       REDIS_RATELIMIT_HOST: redis-rate-limit
-      REDIS_RATELIMIT_PORT: ${REDIS_RATELIMIT_PORT:-6379}
+      REDIS_RATELIMIT_PORT: 6379
       REDIS_RATELIMIT_PASSWORD: ${REDIS_RATELIMIT_PASSWORD:-ratelimit_password_change_me}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
     ports:
